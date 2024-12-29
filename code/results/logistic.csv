@@ -1,0 +1,6 @@
+solver,penalty,C,Combination_ID,Score,Dataset
+liblinear,l2,0.01,1,0.7056428571428572,
+liblinear,l1,10.0,2,0.7197,
+liblinear,l2,0.001,3,0.7051428571428571,
+liblinear,l2,100.0,4,0.7059142857142857,
+liblinear,l1,0.01,5,0.7066428571428571,
