@@ -16,10 +16,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 def makeplots(best_models, X, y, path):
-    original_stdout = sys.stdout
-    original_stderr = sys.stderr
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
+    #original_stdout = sys.stdout
+    #original_stderr = sys.stderr
+    #sys.stdout = open(os.devnull, 'w')
+    #sys.stderr = open(os.devnull, 'w')
 
     if not os.path.exists(f"{path}/plots"):
         os.makedirs(f"{path}/plots")
@@ -48,9 +48,9 @@ def makeplots(best_models, X, y, path):
             plt.savefig(f"{path}/plots/{file}_convergence.png")
             plt.clf()
 
-    sys.stdout.close()
-    sys.stderr.close()
-    sys.stdout =original_stdout
-    sys.stderr = original_stderr
+    #sys.stdout.close()
+    #sys.stderr.close()
+    #sys.stdout =original_stdout
+    #sys.stderr = original_stderr
 
     return None

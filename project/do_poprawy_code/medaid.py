@@ -5,8 +5,6 @@ from plots import makeplots
 import pickle
 import sys
 import os
-#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
-from project.reporting.generate_report import GenerateReport
 
 class medaid:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
@@ -115,7 +113,11 @@ class medaid:
         return self.best_metrics
 
     def report(self):
-        pass
+        print("Generating report...")
+        print(f"Best models: {self.best_models}")
+        print(f"Best models scores: {self.best_models_scores}")
+        print(f"Best metrics: {self.best_metrics}")
+        print("the end")
 
     def save(self):
         with open(f"{self.path}/medaid.pkl", 'wb') as f:
