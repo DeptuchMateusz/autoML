@@ -115,29 +115,7 @@ class medaid:
         return self.best_metrics
 
     def report(self):
-        print("Generating report")
-        print("Report path:", self.path)
-        print("Best models:", self.best_models)
-        print("Best metrics:", self.best_metrics)
-
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-            print(f"Created directory: {self.path}")
-
-        try:
-            if self.best_models is None:
-                raise ValueError("You need to train the model first")
-            report = GenerateReport(os.path.join(self.path, "report.pdf"))
-            report.add_title("Model ranking")
-            report.add_table(self.models_ranking())
-            report.add_title("Best models")
-            for i in range(len(self.best_models)):
-                report.add_title(f"Model {self.best_models[i]}")
-                report.add_paragraph(f"Score: {self.best_models_scores[i]}")
-            report.save()
-            print("Report saved to report.pdf")
-        except Exception as e:
-            print("Error during report generation:", str(e))
+        pass
 
     def save(self):
         with open(f"{self.path}/medaid.pkl", 'wb') as f:
