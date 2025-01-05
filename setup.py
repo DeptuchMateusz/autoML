@@ -17,7 +17,7 @@ setup(
     url="https://github.com/DeptuchMateusz/autoML",
     author="Zofia Kamińska, Karolina Dunal, Mateusz Deptuch",
     license="MIT",
-    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
+    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*"]),
     install_requires=open("requirements.txt").readlines(),
     include_package_data=True,
     python_requires='>=3.8',
@@ -27,4 +27,6 @@ setup(
         "machine learning",
         "medical data",
     ],
+    test_suite="tests",
+    tests_require=["pytest", "unittest2"],  # Użyj odpowiednich narzędzi do testowania
 )
