@@ -113,13 +113,38 @@ class medaid:
         return self.best_metrics
 
     def report(self):
-        print("Generating report...")
-        print(f"Best models: {self.best_models}")
-        print(f"Best models scores: {self.best_models_scores}")
-        print(f"Best metrics: {self.best_metrics}")
-        print("the end")
+        # Ensure log.txt is created
+        if not os.path.exists('log.txt'):
+            open('log.txt', 'w').close()
+
+        original_stdout = sys.stdout  # Save a reference to the original standard output
+        with open('log.txt', 'w') as f:
+            sys.stdout = f  # Change the standard output to the file we created.
+            print("Generating report...")
+            print(f"Best models: {self.best_models}")
+            print(f"Best models scores: {self.best_models_scores}")
+            print(f"Best metrics: {self.best_metrics}")
+            print("the end")
+            print("is working")
+            print("is only working when started from terminal")
+            sys.stdout = original_stdout  # Reset the standard output to its original value
 
     def save(self):
         with open(f"{self.path}/medaid.pkl", 'wb') as f:
             pickle.dump(self, f)
 
+if __name__ == "__main__":
+    # Example usage
+    import pandas as pd
+
+    data = pd.read_csv('../../data/binary/cardio_train.csv', sep=';')
+    X = data.drop(columns=['cardio', 'id'])
+    y = data['cardio']
+    # Create an instance of medaid
+    aid = medaid(X, y)
+
+    # Train the model
+    #aid.train()
+
+    # Generate a report
+    aid.report()
