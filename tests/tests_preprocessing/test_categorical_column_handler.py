@@ -38,8 +38,11 @@ class TestCategoricalColumnHandler(unittest.TestCase):
         self.assertNotIn('Score', categorical_columns)
 
     def test_filter_and_encode(self):
-        # Testing filter_and_encode function
+    # Testing filter_and_encode function
         processed_df = self.detector.filter_and_encode(self.df)
+
+        # Print the resulting DataFrame to check the result
+        print("Processed DataFrame:\n", processed_df.head())
 
         # Check that 'Comments' column is removed (it should not be categorical)
         self.assertNotIn('Comments', processed_df.columns)
@@ -54,6 +57,7 @@ class TestCategoricalColumnHandler(unittest.TestCase):
         # Check that non-categorical columns are kept
         self.assertIn('Age', processed_df.columns)
         self.assertIn('Score', processed_df.columns)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -98,7 +98,7 @@ class CategoricalColumnHandler:
 
         # One-hot encode categorical text columns
         if text_columns_to_encode:
-            processed_df = pd.get_dummies(processed_df, columns=text_columns_to_encode, drop_first=True)
+            processed_df = pd.get_dummies(processed_df, columns=text_columns_to_encode, drop_first=True, dtype=int)
 
         return processed_df
 
