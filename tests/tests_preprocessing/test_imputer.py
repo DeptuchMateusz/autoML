@@ -15,7 +15,7 @@ class TestMissingValueImputer(unittest.TestCase):
         self.df = pd.DataFrame({
             'Age': [23, 25, np.nan, 30, 22],
             'Gender': ['Male', 'Female', 'Female', np.nan, 'Male'],
-            'Score': [85, 96, 88, 92, 90],
+            'Score': [86, 96, 88, 92, 90],
             'Country': ['US', 'UK', 'CA', np.nan, 'US']
         })
         
@@ -26,7 +26,8 @@ class TestMissingValueImputer(unittest.TestCase):
         """
         Test to check that missing values are imputed using Linear Regression when correlation is strong.
         """
-        self.df['Age'] = self.df['Age'] * 2  # Strong correlation with 'Score'
+        self.df['Age'] = self.df['Score'] * 0.5 # Strong correlation with 'Score'
+        self.df.at[3, 'Age'] = np.nan 
 
         imputed_df = self.imputer.impute_missing_values(self.df)
         
