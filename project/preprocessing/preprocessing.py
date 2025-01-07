@@ -14,38 +14,13 @@ class Preprocessing:
         - target_column (str): The name of the target column that will not be preprocessed.
         - output_file (str): The name of the output CSV file where details will be saved.
         """
-        self.output_file = output_file
         self.target_column = target_column
         self.text_column_remover = ColumnRemover()
         self.encoder = Encoder()
         self.scaler = Scaler()
         self.imputation = Imputer()
-        self.preprcoseesing_info = PreprocessingCsv(self.output_file)
+        self.preprcoseesing_info = PreprocessingCsv(output_file)
         self.columns_info = []  # List to store details of the preprocessing steps
-
-    def get_column_info(self):
-        """
-        Retrieve the details of each preprocessing step for all columns.
-
-        Returns:
-        - list: Contains details of the preprocessing for each column.
-        """
-        return self.columns_info
-
-    def save_column_info(self, text_column_removal_info, imputation_info, encoding_info, scaling_info):
-        """
-        Save the preprocessing details to a CSV file using PreprocessingCsvExporter.
-
-        Parameters:
-        - text_column_removal_info (dict): Information about text column removal.
-        - imputation_info (dict): Information about imputation.
-        - encoding_info (dict): Information about encoding.
-        - scaling_info (dict): Information about scaling.
-        """
-        
-        # Use PreprocessingCsv to save the details
-        self.preprcoseesing_info.export_to_csv(text_column_removal_info, imputation_info, encoding_info, scaling_info)
-
 
     def preprocess(self, dataframe):
         """
@@ -80,3 +55,26 @@ class Preprocessing:
         self.save_column_info(text_column_removal_info, imputation_info, encoding_info, scaling_info)
 
         return dataframe
+
+    def get_column_info(self):
+        """
+        Retrieve the details of each preprocessing step for all columns.
+
+        Returns:
+        - list: Contains details of the preprocessing for each column.
+        """
+        return self.columns_info
+
+    def save_column_info(self, text_column_removal_info, imputation_info, encoding_info, scaling_info):
+        """
+        Save the preprocessing details to a CSV file using PreprocessingCsvExporter.
+
+        Parameters:
+        - text_column_removal_info (dict): Information about text column removal.
+        - imputation_info (dict): Information about imputation.
+        - encoding_info (dict): Information about encoding.
+        - scaling_info (dict): Information about scaling.
+        """
+        
+        # Use PreprocessingCsvExporter to save the details
+        self.preprcoseesing_info.export_to_csv(text_column_removal_info, imputation_info, encoding_info, scaling_info)
