@@ -1,3 +1,0 @@
-Combination_ID,verbosity,subsample,reg_lambda,reg_alpha,n_estimators,max_depth,learning_rate,gamma,colsample_bytree,colsample_bynode,colsample_bylevel,f1,accuracy,precision,recall
-1,0,1.0,0.0,0.5,400,7,0.01,0.0,0.5,0.5,0.7,0.7117590197077166,0.7313570983610402,0.7666743601625604,0.6642110331657305
-2,0,0.5,0.5,10.0,400,11,0.7,0.5,0.7,0.7,1.0,0.7131739759330324,0.7207856643618545,0.7322331313204778,0.6951404744712725
