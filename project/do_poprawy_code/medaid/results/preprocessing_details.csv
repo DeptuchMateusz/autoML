@@ -1,14 +1,14 @@
 Column Name,Removed,Correlation with Target,Imputation Method,Encoded,Scaling Method,Scaling Params
-ap_lo,False,0.06571790885126072,Median,,min_max,"{'min': -70.0, 'max': 11000.0}"
-height,False,0.01076407184516415,Median,,min_max,"{'min': 55.0, 'max': 250.0}"
-cholesterol,False,,,,min_max,"{'min': 1.0, 'max': 3.0}"
 active,False,,,,min_max,"{'min': 0.0, 'max': 1.0}"
+age,False,0.2381389311432667,Random Forest,,min_max,"{'min': 10798.0, 'max': 23713.0}"
+weight,False,0.18165307082129778,Median,,min_max,"{'min': 10.0, 'max': 200.0}"
 id,False,,,,,
 gluc,False,,,,min_max,"{'min': 1.0, 'max': 3.0}"
-cardio,False,,,,,
-age,False,0.2381389311432667,Random Forest,,min_max,"{'min': 10798.0, 'max': 23713.0}"
-ap_hi,False,0.05447277513345363,Median,,min_max,"{'min': -150.0, 'max': 16020.0}"
 smoke,False,,,,min_max,"{'min': 0.0, 'max': 1.0}"
-weight,False,0.18165307082129778,Median,,min_max,"{'min': 10.0, 'max': 200.0}"
 alco,False,,,,min_max,"{'min': 0.0, 'max': 1.0}"
+cholesterol,False,,,,min_max,"{'min': 1.0, 'max': 3.0}"
+ap_lo,False,0.06571790885126072,Median,,min_max,"{'min': -70.0, 'max': 11000.0}"
 gender,False,0.008099113943770513,Median,,min_max,"{'min': 1.0, 'max': 2.0}"
+ap_hi,False,0.05447277513345363,Median,,min_max,"{'min': -150.0, 'max': 16020.0}"
+cardio,False,,,,,
+height,False,0.01076407184516415,Median,,min_max,"{'min': 55.0, 'max': 250.0}"
