@@ -33,6 +33,9 @@ def makeplots(best_models, X, y, path):
                                  target_name="target",
                                  feature_names=X.columns)
             viz.view().save(f"{path}/plots/tree.svg")
+            #save to png
+            plot_tree(model, filled=True)
+            plt.savefig(f"{path}/plots/tree.png")
         elif model.__class__.__name__ == "LogisticRegression":
             pass #TODO: feature importance?
 
@@ -209,4 +212,5 @@ if __name__ == "__main__":
     #distribution_plots(aid)
     #correlation_plot(aid)
     #make_confusion_matrix(aid)
-    shap_feature_importance_plot(aid)
+    #shap_feature_importance_plot(aid)
+    makeplots(aid.best_models, aid.X, aid.y, aid.path)
