@@ -42,6 +42,44 @@ class Reporting:
             f.write(f"<td>{self.aid.X[column].nunique()}</td>")
             f.write(f"</tr>")
         f.write(f"</table>")
+        #list the distributions of the features
+        f.write(f"<h2>Feature distributions</h2>")
+        plots_path = os.path.join(self.path, 'medaid', 'distribution_plots')
+        print(plots_path)
+        for plot_file in os.listdir(plots_path):
+            if plot_file.endswith('.png'):
+                plot_path = f'../medaid/distribution_plots/{plot_file}'
+                print(plot_path)
+                #add the plots to the report, five in a row, smaller images
+                f.write(f"<img src='{plot_path}' width='250' height='200'>")
+        #add correlation matrix and correlation with y plots
+        f.write(f"<h2>Correlation matrix</h2>")
+        f.write(f"<img src='../medaid/correlation_plots/correlation_matrix.png' width='600' height='600'>")
+        f.write(f"<h2>Correlation with y</h2>")
+        for plot_file in os.listdir(os.path.join(self.path, 'medaid', 'correlation_plots')):
+            if plot_file.endswith('.png'):
+                plot_path = f'../medaid/correlation_plots/{plot_file}'
+                if plot_path != '../medaid/correlation_plots/correlation_matrix.png':
+                    f.write(f"<img src='{plot_path}' width='250' height='200'>")
+        #add the head of the data frame
+        f.write(f"<h2>Data frame head</h2>")
+        f.write(f"<table>")
+        f.write(f"<tr>")
+        for col in self.aid.X.columns:
+            f.write(f"<th>{col}</th>")
+        f.write(f"</tr>")
+        #add the first 5 rows of the data frame
+        for row in self.aid.X.head().values:
+            f.write(f"<tr>")
+            for value in row:
+                #if two unique values, make it a binary value
+                if self.aid.X[col].nunique() == 2:
+                    f.write(f"<td>{int(value)}</td>")
+                else:
+                    f.write(f"<td>{value}</td>")
+            f.write(f"</tr>")
+        f.write(f"</table>")
+
         #list the target variable
         f.write(f"<p>Target variable: {self.aid.y.name}</p>")
         #check if the target variable is binary
@@ -75,15 +113,19 @@ class Reporting:
             f.write(f"</tr>")
 
         f.write(f"</table>")
-        # Insert all plots (png) from project/do_poprawy_code/medaid/plots
-        f.write(f"<h2>Model convergence</h2>")
-        plots_path = os.path.join(self.path, 'medaid', 'plots')
-        print(plots_path)
-        for plot_file in os.listdir(plots_path):
-            if plot_file.endswith('.png'):
-                plot_path = f'../medaid/plots/{plot_file}'
-                print(plot_path)
-                f.write(f"<img src='{plot_path}' alt='{plot_file}'>")
+
+        #for each model add the model name, confusion matrix, classification report, feature importance plots and if it is a tree add the tree.svg
+        for model in self.aid.best_models:
+            f.write(f"<h2>{model.__class__.__name__}</h2>")
+            f.write(f"<h3>Confusion matrix</h3>")
+            f.write(f"<img src='../medaid/confusion_matrix/{model.__class__.__name__}_confusion_matrix.png' width='400' height='400'>")
+            f.write(f"<h3>Feature importance</h3>")
+            #display the feature importnace plots
+            if os.path.exists(f"{self.path}/medaid/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png"):
+                f.write(f"<img src='../medaid/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png' width='400' height='400'>")
+            if model.__class__.__name__ == "DecisionTreeClassifier":
+                f.write(f"<h3>Tree</h3>")
+                f.write(f"<img src='../medaid/plots/tree.svg' width='400' height='400'>")
         f.write(f"</html>")
 
         return None

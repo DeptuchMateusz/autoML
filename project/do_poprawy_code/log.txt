@@ -1,0 +1,7 @@
+Generating report...
+Best models: None
+Best models scores: None
+Best metrics: None
+the end
+is working
+is only working when started from terminal
