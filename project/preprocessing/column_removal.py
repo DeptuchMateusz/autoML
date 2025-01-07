@@ -49,7 +49,7 @@ class ColumnRemover:
             if 'id' in column_name.lower():  # Case insensitive search for 'id' in column names
                 text_columns_to_drop.append(column_name)
                 self.removal_info[column_name] = True  # Mark as removed
-        
+        print(self.removal_info)
         return text_columns_to_drop
 
     def remove(self, dataframe):
@@ -98,4 +98,5 @@ class ColumnRemover:
         """
         Returns a dictionary with column names and whether they were removed or not.
         """
+        print(self.removal_info)
         return self.removal_info
