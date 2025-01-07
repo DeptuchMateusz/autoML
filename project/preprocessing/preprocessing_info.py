@@ -48,6 +48,7 @@ class PreprocessingCsv:
             columns_info.append({
                 "Column Name": column,
                 "Removed": text_column_removal_info.get(column, None),
+                "Correlation with Target": imputation_info.get(column, {}).get("Correlation", None),
                 "Imputation Method": imputation_info.get(column, {}).get("Imputation Method", None),
                 "Encoded": encoding_info.get(column, {}).get("Encoding Method", None),
                 "Scaling Method": scaling_info.get(column, {}).get("scaling_method", None),
@@ -55,7 +56,6 @@ class PreprocessingCsv:
             })
         # Convert the list of dictionaries into a pandas DataFrame
         df = pd.DataFrame(columns_info)
-        print(df.head())
 
         # Save the DataFrame to a CSV file
         df.to_csv(self.output_file, index=False)

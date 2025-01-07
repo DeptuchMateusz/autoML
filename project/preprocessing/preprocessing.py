@@ -1,10 +1,9 @@
 import pandas as pd
-import csv
-from .text_column_removal import TextColumnRemover
-from .encoder import Encoder
-from .scaler import Scaler
-from .imputer import Imputer
-from .preprocessing_info import PreprocessingCsv  
+from project.preprocessing.column_removal import ColumnRemover
+from project.preprocessing.encoder import Encoder
+from project.preprocessing.scaler import Scaler
+from project.preprocessing.imputer import Imputer
+from project.preprocessing.preprocessing_info import PreprocessingCsv  
 
 class Preprocessing:
     def __init__(self, target_column, output_file="project/do_poprawy_code/medaid/results/preprocessing_details.csv"):
@@ -16,7 +15,7 @@ class Preprocessing:
         - output_file (str): The name of the output CSV file where details will be saved.
         """
         self.target_column = target_column
-        self.text_column_remover = TextColumnRemover()
+        self.text_column_remover = ColumnRemover()
         self.encoder = Encoder()
         self.scaler = Scaler()
         self.imputation = Imputer()
