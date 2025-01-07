@@ -14,9 +14,29 @@ class ColumnRemover:
         - correlation_threshold (float): Threshold for correlation between columns.
         """
         self.threshold = threshold
+<<<<<<< HEAD
         self.correlation_threshold = correlation_threshold
         self.removal_info = {}
         self.target_column = target_column
+=======
+        self.removal_info = {}  # Store info about columns and whether they were removed
+
+    def is_categorical(self, column):
+        """
+        Check if a single column is categorical based on the percentage difference between unique values and total values.
+
+        Parameters:
+        - column (pd.Series): The column to check.
+
+        Returns:
+        - bool: True if the column is categorical, False otherwise.
+        """
+
+        # Check for 'category' dtype or 'object' dtype (typically text data)
+        if column.dtype.name == 'category' or column.dtype.name == 'object':
+            return True
+        return False
+>>>>>>> df943ca (pandas in columnremoval does not work no idea why i am so done)
 
     def remove_id_columns(self, dataframe):
         """
@@ -135,4 +155,5 @@ class ColumnRemover:
         """
         Returns a dictionary with column names and whether they were removed or not.
         """
+        print(self.removal_info)
         return self.removal_info
