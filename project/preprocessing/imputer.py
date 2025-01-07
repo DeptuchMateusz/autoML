@@ -85,7 +85,7 @@ class Imputer:
 
                     # If the correlation is weak, use median for imputation
                     else:
-                        df_copy[column].fillna(df_copy[column].median(), inplace=True)
+                        df_copy[column] = df_copy[column].fillna(df_copy[column].median())
 
                         # Store imputation method for this column
                         self.imputation_info[column] = {

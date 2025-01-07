@@ -1,8 +1,9 @@
 import pandas as pd
 
-class TextColumnRemover:
+class ColumnRemover:
     """
-    A class to detect and remove non-categorical text columns in a pandas DataFrame.
+    A class to detect and remove non-categorical text columns in a pandas DataFrame,
+    including columns with 'id' in their name.
     """
 
     def __init__(self, threshold=0.2):
@@ -33,9 +34,27 @@ class TextColumnRemover:
             return True
         return False
 
+    def remove_id_columns(self, dataframe):
+        """
+        Remove columns that have 'id' in their name (case insensitive).
+
+        Parameters:
+        - dataframe (pd.DataFrame): The DataFrame to process.
+
+        Returns:
+        - list: List of column names that were removed.
+        """
+        text_columns_to_drop = []
+        for column_name in dataframe.columns:
+            if 'id' in column_name.lower():  # Case insensitive search for 'id' in column names
+                text_columns_to_drop.append(column_name)
+                self.removal_info[column_name] = True  # Mark as removed
+        
+        return text_columns_to_drop
+
     def remove(self, dataframe):
         """
-        Delete non-categorical text columns.
+        Delete non-categorical text columns and columns containing 'id' in their name.
 
         Parameters:
         - dataframe (pd.DataFrame): The DataFrame to process.
@@ -49,6 +68,10 @@ class TextColumnRemover:
         processed_df = dataframe.copy()
         text_columns_to_drop = []
 
+        # First, remove 'id' columns
+        text_columns_to_drop.extend(self.remove_id_columns(dataframe))
+
+        # Now check for other non-categorical text columns
         for column_name in dataframe.columns:
             column = dataframe[column_name]
 
@@ -66,7 +89,7 @@ class TextColumnRemover:
             else:
                 self.removal_info[column_name] = False  # Not removed
 
-        # Drop non-categorical text columns
+        # Drop the identified columns
         processed_df.drop(columns=text_columns_to_drop, inplace=True)
 
         return processed_df
