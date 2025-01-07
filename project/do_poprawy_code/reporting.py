@@ -3,6 +3,8 @@
 
 import os
 import pandas as pd
+from dtreeviz import dtreeviz
+
 from project.do_poprawy_code.medaid import medaid
 
 class Reporting:
@@ -20,6 +22,20 @@ class Reporting:
         f = open(f"{self.path}/report/report.html", "w")
         f.write(f"<html lang='en'>")
         f.write(f"<h1>{title}</h1>")
+        f.write("""
+            <style>
+                .scrollable-container {
+                    width: 100%; /* Full width of the page */
+                    height: 600px; /* Limit visible height */
+                    overflow: auto; /* Enable scrolling */
+                    border: 1px solid #ccc; /* Optional border */
+                }
+                .scrollable-container img {
+                    width: 100000px; /* Very large width */
+                    height: auto; /* Maintain aspect ratio */
+                }
+            </style>
+            """)
         #analyze the X and y data
         f.write(f"<h2>Data analysis</h2>")
         f.write(f"<p>Number of rows: {len(self.aid.X)}</p>")
@@ -125,7 +141,11 @@ class Reporting:
                 f.write(f"<img src='../medaid/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png' width='400' height='400'>")
             if model.__class__.__name__ == "DecisionTreeClassifier":
                 f.write(f"<h3>Tree</h3>")
-                f.write(f"<img src='../medaid/plots/tree.svg' width='400' height='400'>")
+                f.write("""
+                        <div class="scrollable-container">
+                            <img src="../medaid/plots/tree.svg" alt="Decision Tree Visualization">
+                        </div>
+                        """)
         f.write(f"</html>")
 
         return None
