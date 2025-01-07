@@ -28,6 +28,7 @@ class ColumnRemover:
         Returns:
         - dataframe (pd.DataFrame): The DataFrame with 'id' columns removed.
         """
+<<<<<<< HEAD
         id_columns_to_remove = [col for col in dataframe.columns if 'id' in col.lower()]
         for col in id_columns_to_remove:
             if col == self.target_column:
@@ -35,6 +36,15 @@ class ColumnRemover:
             self.removal_info[col] = {"Removed": True, "Reason": "Contains 'id'"}
         dataframe.drop(columns=id_columns_to_remove, inplace=True)
         return dataframe
+=======
+        text_columns_to_drop = []
+        for column_name in dataframe.columns:
+            if 'id' in column_name.lower():  # Case insensitive search for 'id' in column names
+                text_columns_to_drop.append(column_name)
+                self.removal_info[column_name] = True  # Mark as removed
+        
+        return text_columns_to_drop
+>>>>>>> 455bbb0 (Revert "Karolina")
 
     def remove_highly_correlated_columns(self, dataframe):
         """

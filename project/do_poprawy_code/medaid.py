@@ -5,14 +5,18 @@ from plots import makeplots
 import pickle
 import sys
 import os
-from project.preprocessing.preprocessing import Preprocessing
 
 class medaid:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
     allowed_metrics = [ "accuracy", "f1", "recall", "precision"] #TODO ktore metryki ?
     def __init__(self
+<<<<<<< HEAD
                  , dataset_path
                  , target_column
+=======
+                 , X
+                 , y
+>>>>>>> 455bbb0 (Revert "Karolina")
                  , mode = "perform"
                  , models = None
                  , metric = "f1"
@@ -21,9 +25,21 @@ class medaid:
                  , cv = 3
                  , n_iter = 20
                  ):
+<<<<<<< HEAD
         
         self.dataset_path = dataset_path
         self.target_column = target_column
+=======
+
+        if type(X) is not pd.DataFrame:
+            raise ValueError("X must be a pandas DataFrame")
+        if type(y) is not pd.Series and type(y) is not pd.DataFrame:
+            raise ValueError("y must be a pandas Series or DataFrame")
+        if len(X) != len(y):
+            raise ValueError("X and y must have the same number of rows")
+        self.X = X
+        self.y = y
+>>>>>>> 455bbb0 (Revert "Karolina")
 
         if mode not in ["explain", "perform"]:
             raise ValueError("mode must be either 'explain' or 'perform'")
@@ -54,7 +70,10 @@ class medaid:
             self.path = path + "/medaid"
         else:
             self.path = os.path.dirname(os.path.abspath(__file__)) + "/medaid"
+<<<<<<< HEAD
         
+=======
+>>>>>>> 455bbb0 (Revert "Karolina")
 
         if search:
             if search not in ["random", "grid"]:
@@ -90,6 +109,7 @@ class medaid:
             str+="not trained\n"
 
         return str
+<<<<<<< HEAD
 
     def read_data(self):
         if not os.path.exists(self.dataset_path):
@@ -109,10 +129,15 @@ class medaid:
         X = df.drop(columns=[self.target_column])
         y = df[self.target_column]
         best_models, best_models_scores, best_metrics= train(X, y, self.models, self.metric, self.mode, self.path, self.search, self.cv, self.n_iter)
+=======
+
+    def train(self):
+        best_models, best_models_scores, best_metrics= train(self.X, self.y, self.models, self.metric, self.mode, self.path, self.search, self.cv, self.n_iter)
+>>>>>>> 455bbb0 (Revert "Karolina")
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
-        makeplots(self.best_models, X, y, self.path)
+        makeplots(self.best_models, self.X, self.y, self.path)
 
     def predict(self, X):
         if self.best_models is None:
