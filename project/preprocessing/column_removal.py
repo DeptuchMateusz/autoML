@@ -26,8 +26,6 @@ class ColumnRemover:
         Returns:
         - bool: True if the column is categorical, False otherwise.
         """
-        if not isinstance(column, pd.Series):
-            raise ValueError("Input must be a pandas Series.")
 
         # Check for 'category' dtype or 'object' dtype (typically text data)
         if column.dtype.name == 'category' or column.dtype.name == 'object':
@@ -62,8 +60,6 @@ class ColumnRemover:
         Returns:
         - pd.DataFrame: A DataFrame with non-categorical text columns removed.
         """
-        if not isinstance(dataframe, pd.DataFrame):
-            raise ValueError("Input must be a pandas DataFrame.")
 
         processed_df = dataframe.copy()
         text_columns_to_drop = []
@@ -98,4 +94,5 @@ class ColumnRemover:
         """
         Returns a dictionary with column names and whether they were removed or not.
         """
+        print(self.removal_info)
         return self.removal_info

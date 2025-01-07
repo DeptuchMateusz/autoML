@@ -5,6 +5,7 @@ from plots import makeplots
 import pickle
 import sys
 import os
+from project.preprocessing.preprocessing import Preprocessing
 
 class medaid:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
@@ -12,6 +13,8 @@ class medaid:
     def __init__(self
                  , X
                  , y
+                 , dataset
+                 , target_column
                  , mode = "perform"
                  , models = None
                  , metric = "f1"
@@ -29,6 +32,8 @@ class medaid:
             raise ValueError("X and y must have the same number of rows")
         self.X = X
         self.y = y
+        self.dataset = dataset
+        self.target_column = target_column
 
         if mode not in ["explain", "perform"]:
             raise ValueError("mode must be either 'explain' or 'perform'")
@@ -67,6 +72,8 @@ class medaid:
         else:
             self.search = "random" if mode == "explain" else "grid"
 
+        self.preprocess = Preprocessing(target_column)
+
         if type(cv) is not int:
             raise ValueError("cv must be an integer")
         self.cv = cv
@@ -92,13 +99,20 @@ class medaid:
             str+="not trained\n"
 
         return str
+    
+    def preprocess(self):
+        return self.preprocess.preprocess(self.dataset)
+
 
     def train(self):
-        best_models, best_models_scores, best_metrics= train(self.X, self.y, self.models, self.metric, self.mode, self.path, self.search, self.cv, self.n_iter)
+        df = self.preprocess.preprocess(self.dataset)
+        X = df.drop(columns=[self.target_column])
+        y = df[self.target_column]
+        best_models, best_models_scores, best_metrics= train(X, y, self.models, self.metric, self.mode, self.path, self.search, self.cv, self.n_iter)
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
-        makeplots(self.best_models, self.X, self.y, self.path)
+        makeplots(self.best_models, X, y, self.path)
 
     def predict(self, X):
         if self.best_models is None:
