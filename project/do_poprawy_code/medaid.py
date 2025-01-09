@@ -5,6 +5,7 @@ from plots import makeplots
 import pickle
 import sys
 import os
+from project.preprocessing.preprocessing import Preprocessing
 
 class medaid:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
