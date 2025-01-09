@@ -17,6 +17,9 @@ class Preprocessing:
         """
         self.target_column = target_column
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ed515ec (x)
         self.numeric_format_handler = NumericCommaHandler()
         self.text_column_remover = ColumnRemover(self.target_column)
         self.encoder = Encoder(self.target_column)
@@ -24,6 +27,7 @@ class Preprocessing:
         self.imputation = Imputer(self.target_column)
         self.path = path + "/results/preprocessing_details.csv"
         self.preprocessing_info = PreprocessingCsv(self.path)
+<<<<<<< HEAD
 =======
         self.text_column_remover = ColumnRemover()
         self.encoder = Encoder()
@@ -31,6 +35,8 @@ class Preprocessing:
         self.imputation = Imputer()
         self.preprcoseesing_info = PreprocessingCsv(output_file)
 >>>>>>> 455bbb0 (Revert "Karolina")
+=======
+>>>>>>> ed515ec (x)
         self.columns_info = []  # List to store details of the preprocessing steps
 
     def preprocess(self, dataframe):
@@ -43,6 +49,7 @@ class Preprocessing:
         Returns:
         - pd.DataFrame: The preprocessed DataFrame.
         """
+<<<<<<< HEAD
 <<<<<<< HEAD
 
         if not isinstance(dataframe, pd.DataFrame):
@@ -66,24 +73,35 @@ class Preprocessing:
         # 5. Scale numerical features
         dataframe = self.scaler.scale(dataframe)
 =======
+=======
+
+>>>>>>> ed515ec (x)
         if not isinstance(dataframe, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame.")
+        
+        # 1. Handle numeric format
+        dataframe = self.numeric_format_handler.handle_numeric_format(dataframe)
 
-        # 1. Remove text columns
+        # 2. Remove text columns
         dataframe = self.text_column_remover.remove(dataframe)
         text_column_removal_info = self.text_column_remover.get_removal_info()
 
-        # 2. Impute missing values
-        dataframe = self.imputation.impute_missing_values(dataframe, self.target_column)
+        # 3. Impute missing values
+        dataframe = self.imputation.impute_missing_values(dataframe)
         imputation_info = self.imputation.get_imputation_info()
 
-        # 3. Encode categorical variables
-        dataframe = self.encoder.encode(dataframe, self.target_column)
+        # 4. Encode categorical variables
+        dataframe = self.encoder.encode(dataframe)
         encoding_info = self.encoder.get_encoding_info()
 
+<<<<<<< HEAD
         # 4. Scale numerical features
         dataframe = self.scaler.scale(dataframe, self.target_column)
 >>>>>>> 455bbb0 (Revert "Karolina")
+=======
+        # 5. Scale numerical features
+        dataframe = self.scaler.scale(dataframe)
+>>>>>>> ed515ec (x)
         scaling_info = self.scaler.get_scaling_info()
 
         # Save the column info to CSV
@@ -113,7 +131,11 @@ class Preprocessing:
         
         # Use PreprocessingCsvExporter to save the details
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.preprocessing_info.export_to_csv(text_column_removal_info, imputation_info, encoding_info, scaling_info)
 =======
         self.preprcoseesing_info.export_to_csv(text_column_removal_info, imputation_info, encoding_info, scaling_info)
 >>>>>>> 455bbb0 (Revert "Karolina")
+=======
+        self.preprocessing_info.export_to_csv(text_column_removal_info, imputation_info, encoding_info, scaling_info)
+>>>>>>> ed515ec (x)

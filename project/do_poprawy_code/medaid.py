@@ -5,12 +5,12 @@ from plots import makeplots
 import pickle
 import sys
 import os
-from project.preprocessing.preprocessing import Preprocessing
 
 class medaid:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
     allowed_metrics = [ "accuracy", "f1", "recall", "precision"] #TODO ktore metryki ?
     def __init__(self
+<<<<<<< HEAD
 <<<<<<< HEAD
                  , dataset_path
                  , target_column
@@ -21,6 +21,9 @@ class medaid:
 >>>>>>> 455bbb0 (Revert "Karolina")
 =======
                  , dataset
+=======
+                 , dataset_path
+>>>>>>> ed515ec (x)
                  , target_column
 >>>>>>> df943ca (pandas in columnremoval does not work no idea why i am so done)
                  , mode = "perform"
@@ -31,6 +34,7 @@ class medaid:
                  , cv = 3
                  , n_iter = 20
                  ):
+<<<<<<< HEAD
 <<<<<<< HEAD
         
         self.dataset_path = dataset_path
@@ -49,6 +53,10 @@ class medaid:
 >>>>>>> 455bbb0 (Revert "Karolina")
 =======
         self.dataset = dataset
+=======
+        
+        self.dataset_path = dataset_path
+>>>>>>> ed515ec (x)
         self.target_column = target_column
 >>>>>>> df943ca (pandas in columnremoval does not work no idea why i am so done)
 
@@ -82,9 +90,13 @@ class medaid:
         else:
             self.path = os.path.dirname(os.path.abspath(__file__)) + "/medaid"
 <<<<<<< HEAD
+<<<<<<< HEAD
         
 =======
 >>>>>>> 455bbb0 (Revert "Karolina")
+=======
+        
+>>>>>>> ed515ec (x)
 
         if search:
             if search not in ["random", "grid"]:
@@ -94,10 +106,14 @@ class medaid:
             self.search = "random" if mode == "explain" else "grid"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.preprocess = Preprocessing(target_column, self.path)
 =======
         self.preprocess = Preprocessing(target_column)
 >>>>>>> df943ca (pandas in columnremoval does not work no idea why i am so done)
+=======
+        self.preprocess = Preprocessing(target_column, self.path)
+>>>>>>> ed515ec (x)
 
         if type(cv) is not int:
             raise ValueError("cv must be an integer")
@@ -137,6 +153,7 @@ class medaid:
     
     def preprocessing(self, df):
         return self.preprocess.preprocess(df)
+<<<<<<< HEAD
 
 
     def train(self):
@@ -154,10 +171,13 @@ class medaid:
     
     def preprocess(self):
         return self.preprocess.preprocess(self.dataset)
+=======
+>>>>>>> ed515ec (x)
 
 
     def train(self):
-        df = self.preprocess.preprocess(self.dataset)
+        df = self.read_data()
+        df = self.preprocessing(df)
         X = df.drop(columns=[self.target_column])
         y = df[self.target_column]
         best_models, best_models_scores, best_metrics= train(X, y, self.models, self.metric, self.mode, self.path, self.search, self.cv, self.n_iter)
@@ -165,7 +185,7 @@ class medaid:
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
-        makeplots(self.best_models, X, y, self.path)
+        makeplots(self.best_models, self.X, self.y, self.path)
 
     def predict(self, X):
         if self.best_models is None:
