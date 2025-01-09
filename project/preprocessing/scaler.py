@@ -7,7 +7,8 @@ class Scaler:
     """
     A class that scales features in a DataFrame based on their distribution (normalization or standardization).
     """
-    def __init__(self):
+    def __init__(self, target_column):
+        self.target_column = target_column
         self.scaling_params = {}  # Store scaling parameters (scaling_method, params) for each column
 
     def _detect_distribution(self, column):
@@ -70,7 +71,7 @@ class Scaler:
         else:
             return self.normalize(column)
 
-    def scale(self, dataframe, target_column):
+    def scale(self, dataframe):
         """
         Iteratively scale each numeric column in the DataFrame.
         
@@ -86,7 +87,7 @@ class Scaler:
         scaled_df = dataframe.copy()
 
         for column_name in dataframe.select_dtypes(include=[np.number]).columns:
-            if column_name == target_column:
+            if column_name == self.target_column:
                 continue
             scaled_df[column_name] = self.scale_column(dataframe[column_name])
 

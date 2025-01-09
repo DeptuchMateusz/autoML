@@ -1,3 +1,0 @@
-Combination_ID,verbosity,subsample,reg_lambda,reg_alpha,random_state,objective,num_leaves,n_estimators,max_bin,learning_rate,colsample_bytree,boosting_type,f1,accuracy,precision,recall
-1,-1,0.75,1.4,1,500,binary,16,24,255,0.005,0.66,gbdt,0.7054639756385351,0.7288392536530238,0.7709271871936291,0.650301895448365
-2,-1,0.7,1.0,1,500,binary,12,24,255,0.01,0.64,dart,0.7068583324819033,0.7294821012297937,0.7702862561937693,0.6530909926642126

@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeClassifier
 
 class Imputer:
-    def __init__(self, linear_correlation_threshold=0.8, rf_correlation_threshold=0.2):
+    def __init__(self, target_column, linear_correlation_threshold=0.8, rf_correlation_threshold=0.2):
         """
         Initialize the imputer.
 
@@ -17,14 +17,15 @@ class Imputer:
         self.linear_correlation_threshold = linear_correlation_threshold
         self.rf_correlation_threshold = rf_correlation_threshold
         self.imputation_info = {}  # Dictionary to store imputation method info for each column
+        self.target_column = target_column
 
-    def impute_missing_values(self, dataframe, target_column):
+    def impute_missing_values(self, dataframe):
         """
         Impute missing values based on correlation with the target column.
 
         Parameters:
         - dataframe (pd.DataFrame): The dataframe to process.
-        - target_column (str): The name of the target column.
+        -self.t (str): The name of the target column.
 
         Returns:
         - pd.DataFrame: DataFrame with missing values imputed.
@@ -35,10 +36,10 @@ class Imputer:
         numerical_columns = df_copy.select_dtypes(include=['number']).columns
 
         # Compute correlations only for numerical columns
-        correlations = df_copy[numerical_columns].corr()[target_column]
+        correlations = df_copy[numerical_columns].corr()[self.target_column]
 
         for column in df_copy.columns:
-            if column == target_column:
+            if column == self.target_column:
                 continue
             if df_copy[column].isnull().any():  # Check if the column has missing values
                 # For numerical columns
@@ -47,14 +48,14 @@ class Imputer:
 
                     # If the correlation is strong (linear relationship), use linear regression
                     if correlation >= self.linear_correlation_threshold:
-                        X = df_copy.dropna(subset=[column])[target_column].values.reshape(-1, 1)
+                        X = df_copy.dropna(subset=[column])[self.target_column].values.reshape(-1, 1)
                         y = df_copy.dropna(subset=[column])[column].values
 
                         model = LinearRegression()
                         model.fit(X, y)
 
                         missing_values = df_copy[df_copy[column].isnull()]
-                        predicted_values = model.predict(missing_values[target_column].values.reshape(-1, 1))
+                        predicted_values = model.predict(missing_values[self.target_column].values.reshape(-1, 1))
 
                         df_copy.loc[df_copy[column].isnull(), column] = predicted_values
 
@@ -66,14 +67,14 @@ class Imputer:
 
                     # If the correlation is moderate, use random forest regressor
                     elif correlation >= self.rf_correlation_threshold:
-                        X = df_copy.dropna(subset=[column])[target_column].values.reshape(-1, 1)
+                        X = df_copy.dropna(subset=[column])[self.target_column].values.reshape(-1, 1)
                         y = df_copy.dropna(subset=[column])[column].values
 
                         rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
                         rf_model.fit(X, y)
 
                         missing_values = df_copy[df_copy[column].isnull()]
-                        predicted_values = rf_model.predict(missing_values[target_column].values.reshape(-1, 1))
+                        predicted_values = rf_model.predict(missing_values[self.target_column].values.reshape(-1, 1))
 
                         df_copy.loc[df_copy[column].isnull(), column] = predicted_values
 
@@ -102,7 +103,7 @@ class Imputer:
                     df_copy.loc[df_copy[column].notnull(), column] = le.transform(non_null_data)
 
                     # Preprocessing data for training
-                    X = df_copy.dropna(subset=[column])[target_column].values.reshape(-1, 1)
+                    X = df_copy.dropna(subset=[column])[self.target_column].values.reshape(-1, 1)
                     y = df_copy.dropna(subset=[column])[column].astype(int).values  # Ensure y is int for categorical column
 
                     # Training the model
@@ -111,7 +112,7 @@ class Imputer:
 
                     # Predicting missing values
                     missing_values = df_copy[df_copy[column].isnull()]
-                    predicted_values = model.predict(missing_values[target_column].values.reshape(-1, 1))
+                    predicted_values = model.predict(missing_values[self.target_column].values.reshape(-1, 1))
 
                     # Filling missing values in the DataFrame
                     df_copy.loc[df_copy[column].isnull(), column] = predicted_values

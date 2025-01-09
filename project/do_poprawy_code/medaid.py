@@ -11,9 +11,7 @@ class medaid:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
     allowed_metrics = [ "accuracy", "f1", "recall", "precision"] #TODO ktore metryki ?
     def __init__(self
-                 , X
-                 , y
-                 , dataset
+                 , dataset_path
                  , target_column
                  , mode = "perform"
                  , models = None
@@ -23,16 +21,8 @@ class medaid:
                  , cv = 3
                  , n_iter = 20
                  ):
-
-        if type(X) is not pd.DataFrame:
-            raise ValueError("X must be a pandas DataFrame")
-        if type(y) is not pd.Series and type(y) is not pd.DataFrame:
-            raise ValueError("y must be a pandas Series or DataFrame")
-        if len(X) != len(y):
-            raise ValueError("X and y must have the same number of rows")
-        self.X = X
-        self.y = y
-        self.dataset = dataset
+        
+        self.dataset_path = dataset_path
         self.target_column = target_column
 
         if mode not in ["explain", "perform"]:
@@ -64,6 +54,7 @@ class medaid:
             self.path = path + "/medaid"
         else:
             self.path = os.path.dirname(os.path.abspath(__file__)) + "/medaid"
+        
 
         if search:
             if search not in ["random", "grid"]:
@@ -72,7 +63,7 @@ class medaid:
         else:
             self.search = "random" if mode == "explain" else "grid"
 
-        self.preprocess = Preprocessing(target_column)
+        self.preprocess = Preprocessing(target_column, self.path)
 
         if type(cv) is not int:
             raise ValueError("cv must be an integer")
@@ -99,13 +90,22 @@ class medaid:
             str+="not trained\n"
 
         return str
+
+    def read_data(self):
+        if not os.path.exists(self.dataset_path):
+            raise ValueError(f"File not found at {self.dataset_path}. Please make sure the file exists.")
+        if self.dataset_path.endswith(".csv"):
+            return pd.read_csv(self.dataset_path, sep=None, engine='python')
+        if self.dataset_path.endswith(".xlsx"):
+            return pd.read_excel(self.dataset_path)
     
-    def preprocess(self):
-        return self.preprocess.preprocess(self.dataset)
+    def preprocessing(self, df):
+        return self.preprocess.preprocess(df)
 
 
     def train(self):
-        df = self.preprocess.preprocess(self.dataset)
+        df = self.read_data()
+        df = self.preprocessing(df)
         X = df.drop(columns=[self.target_column])
         y = df[self.target_column]
         best_models, best_models_scores, best_metrics= train(X, y, self.models, self.metric, self.mode, self.path, self.search, self.cv, self.n_iter)

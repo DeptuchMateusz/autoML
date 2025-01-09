@@ -2,61 +2,52 @@ import pandas as pd
 
 class PreprocessingCsv:
     """
-    A class that collects preprocessing details (removal, imputation, encoding, scaling)
-    and exports these details to a CSV file.
+    A class for exporting preprocessing details to a CSV file.
     """
-    def __init__(self, output_file="project/do_poprawy_code/medaid/results/preprocessing_details.csv"):
-        """
-        Initialize the exporter with an output file name.
-
-        Parameters:
-        - output_file (str): The name of the output CSV file.
-        """
-        self.output_file = output_file
+    def __init__(self, path):
+        self.path = path
 
     def export_to_csv(self, text_column_removal_info, imputation_info, encoding_info, scaling_info):
         """
-        Export preprocessing details (text removal, imputation, encoding, scaling) to a CSV file.
+        Exports preprocessing details (removal, imputation, encoding, scaling) to a CSV file.
 
         Parameters:
         - text_column_removal_info (dict): Information about text column removal.
-        - imputation_info (dict): Information about imputation.
-        - encoding_info (dict): Information about encoding.
-        - scaling_info (dict): Information about scaling.
-        
-        Returns:
-        - None
+        - imputation_info (dict): Information about missing value imputation.
+        - encoding_info (dict): Information about variable encoding.
+        - scaling_info (dict): Information about feature scaling.
         """
-        if not isinstance(text_column_removal_info, dict):
-            raise ValueError("text_column_removal_info must be a dictionary.")
-        if not isinstance(imputation_info, dict):
-            raise ValueError("imputation_info must be a dictionary.")
-        if not isinstance(encoding_info, dict):
-            raise ValueError("encoding_info must be a dictionary.")
-        if not isinstance(scaling_info, dict):
-            raise ValueError("scaling_info must be a dictionary.")
-        
         # Collect unique column names from all preprocessing steps
         all_columns = set(
             text_column_removal_info.keys()
         ).union(imputation_info.keys(), encoding_info.keys(), scaling_info.keys())
         
-        # Prepare a list of dictionaries with details for each column
-
+        # Prepare data for export
         columns_info = []
         for column in all_columns:
+            # Retrieve details for the given column from various preprocessing steps
+            removal_info = text_column_removal_info.get(column, {})
+            imputation_details = imputation_info.get(column, {})
+            encoding_details = encoding_info.get(column, {})
+            scaling_details = scaling_info.get(column, {})
+
+
+            # Create a record for the column
             columns_info.append({
                 "Column Name": column,
-                "Removed": text_column_removal_info.get(column, None),
-                "Correlation with Target": imputation_info.get(column, {}).get("Correlation", None),
-                "Imputation Method": imputation_info.get(column, {}).get("Imputation Method", None),
-                "Encoded": encoding_info.get(column, {}).get("Encoding Method", None),
-                "Scaling Method": scaling_info.get(column, {}).get("scaling_method", None),
-                "Scaling Params": scaling_info.get(column, {}).get("params", None),
+                "Removed": removal_info.get("Removed", ""),  # Extract only the boolean value
+                "Reason for Removal": removal_info.get("Reason", ""),  # Extract reason separately
+                "Correlation with Target": imputation_details.get("Correlation", ""),
+                "Imputation Method": imputation_details.get("Imputation Method", ""),
+                "Encoded": encoding_details.get("Encoded", ""),
+                "Encoding Method": encoding_details.get("Encoding Method", ""),
+                "Label Encoding Mapping": str(encoding_details.get("Mapping", "")),  # Convert to string
+                "Scaling Method": scaling_details.get("scaling_method", ""),
+                "Scaling Params": str(scaling_details.get("params", "")),  # Convert to string
             })
-        # Convert the list of dictionaries into a pandas DataFrame
+
+        # Convert the list of dictionaries to a DataFrame
         df = pd.DataFrame(columns_info)
 
         # Save the DataFrame to a CSV file
-        df.to_csv(self.output_file, index=False)
-        print(f"CSV file saved as {self.output_file}")
+        df.to_csv(self.path, index=False)

@@ -1,18 +1,22 @@
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 class Encoder:
     """
     A class to detect and encode categorical columns in a pandas DataFrame.
     """
 
-    def __init__(self):
+    def __init__(self, target_column):
         """
         Initialize the Encoder.
 
         Parameters:
-        - target_column (str): The name of the target column to exclude from encoding.
+        - target_column (str): The name of the target column to handle encoding for.
         """
         self.encoding_info = {}
+        self.target_column = target_column
+        self.label_encoder = LabelEncoder()
+        self.label_encoding_mapping = None  # Stores mapping for target column encoding
 
     def is_categorical(self, column):
         """
@@ -30,25 +34,36 @@ class Encoder:
         # Check for 'category' dtype or 'object' dtype (typically text data)
         return column.dtype.name in ['category', 'object']
 
-    def encode(self, dataframe, target_column):
+    def encode(self, dataframe):
         """
-        Apply one-hot encoding to categorical columns in the DataFrame.
+        Apply one-hot encoding to categorical columns in the DataFrame and label encoding for the target column if needed.
 
         Parameters:
         - dataframe (pd.DataFrame): The DataFrame to process.
 
         Returns:
-        - pd.DataFrame: A DataFrame with categorical columns one-hot encoded.
+        - pd.DataFrame: A DataFrame with categorical columns one-hot encoded and target column label-encoded if necessary.
         """
         if not isinstance(dataframe, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame.")
 
         processed_df = dataframe.copy()
 
+        # Check if the target column needs label encoding
+        if self.is_categorical(dataframe[self.target_column]):
+            processed_df[self.target_column] = self.label_encoder.fit_transform(dataframe[self.target_column])
+            self.label_encoding_mapping = dict(zip(self.label_encoder.classes_, self.label_encoder.transform(self.label_encoder.classes_)))
+            self.encoding_info[self.target_column] = {
+                "Type": "Target Categorical",
+                "Encoded": True,
+                "Encoding Method": "Label Encoding",
+                "Mapping": self.label_encoding_mapping
+            }
+
         # Find categorical columns excluding the target column
         categorical_columns = [
             col for col in dataframe.columns 
-            if self.is_categorical(dataframe[col]) and col != target_column
+            if self.is_categorical(dataframe[col]) and col != self.target_column
         ]
 
         # One-hot encode categorical columns
