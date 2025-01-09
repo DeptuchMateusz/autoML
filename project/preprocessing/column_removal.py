@@ -15,6 +15,7 @@ class ColumnRemover:
         """
         self.threshold = threshold
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.correlation_threshold = correlation_threshold
         self.removal_info = {}
         self.target_column = target_column
@@ -37,6 +38,11 @@ class ColumnRemover:
             return True
         return False
 >>>>>>> df943ca (pandas in columnremoval does not work no idea why i am so done)
+=======
+        self.correlation_threshold = correlation_threshold
+        self.removal_info = {}
+        self.target_column = target_column
+>>>>>>> 94ade45 (x)
 
     def remove_id_columns(self, dataframe):
         """
@@ -49,6 +55,9 @@ class ColumnRemover:
         - dataframe (pd.DataFrame): The DataFrame with 'id' columns removed.
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94ade45 (x)
         id_columns_to_remove = [col for col in dataframe.columns if 'id' in col.lower()]
         for col in id_columns_to_remove:
             if col == self.target_column:
@@ -56,6 +65,7 @@ class ColumnRemover:
             self.removal_info[col] = {"Removed": True, "Reason": "Contains 'id'"}
         dataframe.drop(columns=id_columns_to_remove, inplace=True)
         return dataframe
+<<<<<<< HEAD
 =======
         text_columns_to_drop = []
         for column_name in dataframe.columns:
@@ -65,6 +75,8 @@ class ColumnRemover:
         
         return text_columns_to_drop
 >>>>>>> 455bbb0 (Revert "Karolina")
+=======
+>>>>>>> 94ade45 (x)
 
     def remove_highly_correlated_columns(self, dataframe):
         """
