@@ -10,7 +10,13 @@ class medaid:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
     allowed_metrics = [ "accuracy", "f1", "recall", "precision"] #TODO ktore metryki ?
     def __init__(self
+<<<<<<< HEAD
                  , dataset_path
+=======
+                 , X
+                 , y
+                 , dataset
+>>>>>>> main
                  , target_column
                  , mode = "perform"
                  , models = None
@@ -20,8 +26,21 @@ class medaid:
                  , cv = 3
                  , n_iter = 20
                  ):
+<<<<<<< HEAD
         
         self.dataset_path = dataset_path
+=======
+
+        if type(X) is not pd.DataFrame:
+            raise ValueError("X must be a pandas DataFrame")
+        if type(y) is not pd.Series and type(y) is not pd.DataFrame:
+            raise ValueError("y must be a pandas Series or DataFrame")
+        if len(X) != len(y):
+            raise ValueError("X and y must have the same number of rows")
+        self.X = X
+        self.y = y
+        self.dataset = dataset
+>>>>>>> main
         self.target_column = target_column
 
         if mode not in ["explain", "perform"]:
@@ -53,7 +72,10 @@ class medaid:
             self.path = path + "/medaid"
         else:
             self.path = os.path.dirname(os.path.abspath(__file__)) + "/medaid"
+<<<<<<< HEAD
         
+=======
+>>>>>>> main
 
         if search:
             if search not in ["random", "grid"]:
@@ -62,7 +84,11 @@ class medaid:
         else:
             self.search = "random" if mode == "explain" else "grid"
 
+<<<<<<< HEAD
         self.preprocess = Preprocessing(target_column, self.path)
+=======
+        self.preprocess = Preprocessing(target_column)
+>>>>>>> main
 
         if type(cv) is not int:
             raise ValueError("cv must be an integer")
@@ -98,6 +124,7 @@ class medaid:
         if self.dataset_path.endswith(".xlsx"):
             return pd.read_excel(self.dataset_path)
     
+<<<<<<< HEAD
     def preprocessing(self, df):
         return self.preprocess.preprocess(df)
 
@@ -105,6 +132,14 @@ class medaid:
     def train(self):
         df = self.read_data()
         df = self.preprocessing(df)
+=======
+    def preprocess(self):
+        return self.preprocess.preprocess(self.dataset)
+
+
+    def train(self):
+        df = self.preprocess.preprocess(self.dataset)
+>>>>>>> main
         X = df.drop(columns=[self.target_column])
         y = df[self.target_column]
         best_models, best_models_scores, best_metrics= train(X, y, self.models, self.metric, self.mode, self.path, self.search, self.cv, self.n_iter)
