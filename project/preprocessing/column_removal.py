@@ -14,29 +14,9 @@ class ColumnRemover:
         - correlation_threshold (float): Threshold for correlation between columns.
         """
         self.threshold = threshold
-<<<<<<< HEAD
         self.correlation_threshold = correlation_threshold
         self.removal_info = {}
         self.target_column = target_column
-=======
-        self.removal_info = {}  # Store info about columns and whether they were removed
-
-    def is_categorical(self, column):
-        """
-        Check if a single column is categorical based on the percentage difference between unique values and total values.
-
-        Parameters:
-        - column (pd.Series): The column to check.
-
-        Returns:
-        - bool: True if the column is categorical, False otherwise.
-        """
-
-        # Check for 'category' dtype or 'object' dtype (typically text data)
-        if column.dtype.name == 'category' or column.dtype.name == 'object':
-            return True
-        return False
->>>>>>> main
 
     def remove_id_columns(self, dataframe):
         """
@@ -48,7 +28,6 @@ class ColumnRemover:
         Returns:
         - dataframe (pd.DataFrame): The DataFrame with 'id' columns removed.
         """
-<<<<<<< HEAD
         id_columns_to_remove = [col for col in dataframe.columns if 'id' in col.lower()]
         for col in id_columns_to_remove:
             if col == self.target_column:
@@ -56,15 +35,6 @@ class ColumnRemover:
             self.removal_info[col] = {"Removed": True, "Reason": "Contains 'id'"}
         dataframe.drop(columns=id_columns_to_remove, inplace=True)
         return dataframe
-=======
-        text_columns_to_drop = []
-        for column_name in dataframe.columns:
-            if 'id' in column_name.lower():  # Case insensitive search for 'id' in column names
-                text_columns_to_drop.append(column_name)
-                self.removal_info[column_name] = True  # Mark as removed
-        
-        return text_columns_to_drop
->>>>>>> main
 
     def remove_highly_correlated_columns(self, dataframe):
         """

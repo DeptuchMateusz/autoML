@@ -16,7 +16,6 @@ class Preprocessing:
         - output_file (str): The name of the output CSV file where details will be saved.
         """
         self.target_column = target_column
-<<<<<<< HEAD
         self.numeric_format_handler = NumericCommaHandler()
         self.text_column_remover = ColumnRemover(self.target_column)
         self.encoder = Encoder(self.target_column)
@@ -24,13 +23,6 @@ class Preprocessing:
         self.imputation = Imputer(self.target_column)
         self.path = path + "/results/preprocessing_details.csv"
         self.preprocessing_info = PreprocessingCsv(self.path)
-=======
-        self.text_column_remover = ColumnRemover()
-        self.encoder = Encoder()
-        self.scaler = Scaler()
-        self.imputation = Imputer()
-        self.preprcoseesing_info = PreprocessingCsv(output_file)
->>>>>>> main
         self.columns_info = []  # List to store details of the preprocessing steps
 
     def preprocess(self, dataframe):
@@ -43,7 +35,6 @@ class Preprocessing:
         Returns:
         - pd.DataFrame: The preprocessed DataFrame.
         """
-<<<<<<< HEAD
 
         if not isinstance(dataframe, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame.")
@@ -65,25 +56,6 @@ class Preprocessing:
 
         # 5. Scale numerical features
         dataframe = self.scaler.scale(dataframe)
-=======
-        if not isinstance(dataframe, pd.DataFrame):
-            raise ValueError("Input must be a pandas DataFrame.")
-
-        # 1. Remove text columns
-        dataframe = self.text_column_remover.remove(dataframe)
-        text_column_removal_info = self.text_column_remover.get_removal_info()
-
-        # 2. Impute missing values
-        dataframe = self.imputation.impute_missing_values(dataframe, self.target_column)
-        imputation_info = self.imputation.get_imputation_info()
-
-        # 3. Encode categorical variables
-        dataframe = self.encoder.encode(dataframe, self.target_column)
-        encoding_info = self.encoder.get_encoding_info()
-
-        # 4. Scale numerical features
-        dataframe = self.scaler.scale(dataframe, self.target_column)
->>>>>>> main
         scaling_info = self.scaler.get_scaling_info()
 
         # Save the column info to CSV
@@ -112,8 +84,4 @@ class Preprocessing:
         """
         
         # Use PreprocessingCsvExporter to save the details
-<<<<<<< HEAD
         self.preprocessing_info.export_to_csv(text_column_removal_info, imputation_info, encoding_info, scaling_info)
-=======
-        self.preprcoseesing_info.export_to_csv(text_column_removal_info, imputation_info, encoding_info, scaling_info)
->>>>>>> main
