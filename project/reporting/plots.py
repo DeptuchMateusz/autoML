@@ -70,16 +70,15 @@ def correlation_plot(aid):
 def make_confusion_matrix(aid):
     #create a folder for the plots
     path = aid.path
-    X = aid.X
-    y = aid.y
+    X_test = aid.X_test
+    y_test = aid.y_test
     if not os.path.exists(f"{path}/confusion_matrix"):
         os.makedirs(f"{path}/confusion_matrix")
 
     #generate confusion matrix for each model
     for model in aid.best_models:
-        model.fit(X, y)
-        y_pred = model.predict(X)
-        cm = confusion_matrix(y, y_pred)
+        y_pred = model.predict(X_test)
+        cm = confusion_matrix(y_test, y_pred)
         plt.figure()
         sns.heatmap(cm, annot=True, cmap='Blues', fmt='d', vmin = 0)
         plt.title(f'{model.__class__.__name__} confusion matrix')
@@ -128,11 +127,6 @@ def shap_feature_importance_plot(aid):
             explainer = shap.Explainer(model)
 
         shap_values = explainer(X)
-
-        # Log shapes for debugging
-        print(f"SHAP values for {model.__class__.__name__}: {shap_values.values}")
-        print(f"SHAP values shape: {np.array(shap_values.values).shape}")
-        print(f"X shape: {X.shape}")
 
         # Handle multi-class models
         if len(shap_values.values.shape) == 3:  # Multi-class case
