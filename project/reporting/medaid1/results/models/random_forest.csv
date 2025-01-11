@@ -1,0 +1,2 @@
+Combination_ID,n_estimators,min_samples_split,min_samples_leaf,max_depth,f1,accuracy,precision,recall
+1,300,4,1,11,0.720156316614761,0.7339642549318254,0.7585783052929718,0.6854505465942927

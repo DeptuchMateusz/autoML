@@ -81,6 +81,7 @@ class medaid:
 
         self.test_size = test_size
 
+        self.df_before = self.read_data()
         self.df = self.read_data()
         self.X = None
         self.y = None
@@ -121,7 +122,7 @@ class medaid:
 
 
     def train(self):
-        df = self.preprocessing(self.df)
+        df = self.preprocessing(self.df_before)
         self.X = df.drop(columns=[self.target_column])
         self.y = df[self.target_column]
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=self.test_size, random_state=42)
@@ -130,7 +131,7 @@ class medaid:
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
-        makeplots(self)
+        #makeplots(self) #TODO: odkomentować linijkę jesli juz bedzie dzialac
 
     def predict(self, X):
         if self.best_models is None:
