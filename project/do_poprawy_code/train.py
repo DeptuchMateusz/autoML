@@ -1,3 +1,5 @@
+from sklearn.metrics import f1_score, precision_score, recall_score
+
 from search import CustomRandomizedSearchCV, CustomGridSearchCV
 import os
 from sklearn.linear_model import LogisticRegression
@@ -6,13 +8,15 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 import pandas as pd
+from sklearn.metrics import get_scorer
 
-# TODO: co zrobic z mode?
+
 # TODO: siatki parametrów
 
 
 
-def train(X, y, models, metric, mode, path, search, cv, n_iter):
+def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
+
     param_grids = {
         "logistic": {
             'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
@@ -96,13 +100,22 @@ def train(X, y, models, metric, mode, path, search, cv, n_iter):
         best_models.append(rs.best_estimator_)
         best_models_scores.append(rs.best_score_)
 
+
+        scorer = get_scorer(metric)
+
+        test_best_score = scorer(rs.best_estimator_, X_test, y_test)
         best_metrics = {
             'model': model,
             'best_score': rs.best_score_,
             'f1': rs.cv_results_['mean_test_f1'][rs.best_index_],
             'accuracy': rs.cv_results_['mean_test_accuracy'][rs.best_index_],
             'precision': rs.cv_results_['mean_test_precision'][rs.best_index_],
-            'recall': rs.cv_results_['mean_test_recall'][rs.best_index_]
+            'recall': rs.cv_results_['mean_test_recall'][rs.best_index_],
+            'test_best_score': test_best_score,
+            'test_f1': f1_score(y_test, rs.best_estimator_.predict(X_test)),
+            'test_accuracy': rs.best_estimator_.score(X_test, y_test),
+            'test_precision': precision_score(y_test, rs.best_estimator_.predict(X_test)),
+            'test_recall': recall_score(y_test, rs.best_estimator_.predict(X_test))
         }
         metrics_list.append(best_metrics)
 
@@ -111,4 +124,3 @@ def train(X, y, models, metric, mode, path, search, cv, n_iter):
         metrics_df = pd.DataFrame(metrics_list).sort_values(by='best_score', ascending=False)
 
     return best_models, best_models_scores, metrics_df
-

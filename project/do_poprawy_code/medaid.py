@@ -1,5 +1,7 @@
 import pandas as pd
 from project.preprocessing.preprocessing import Preprocessing
+from sklearn.model_selection import train_test_split
+
 from train import train
 import os
 from plots import makeplots
@@ -13,21 +15,18 @@ class medaid:
     def __init__(self
                  , dataset_path
                  , target_column
-                 , mode = "perform"
                  , models = None
                  , metric = "f1"
                  , path = None
-                 , search  = None
+                 , search  = 'random'
                  , cv = 3
                  , n_iter = 20
+                 , test_size = 0.2
                  ):
-        
+
         self.dataset_path = dataset_path
         self.target_column = target_column
 
-        if mode not in ["explain", "perform"]:
-            raise ValueError("mode must be either 'explain' or 'perform'")
-        self.mode = mode
 
         if models is not None:
             if type(models) is not list:
@@ -36,10 +35,9 @@ class medaid:
                 if model not in self.allowed_models:
                     raise ValueError(f"model {model} is not allowed, must be one of {self.allowed_models}")
             self.models = models
-        elif mode == "perform":
-            self.models = self.allowed_models
         else:
-            self.models = ["logistic", "tree"]
+            self.models = self.allowed_models
+
 
 
         if metric not in self.allowed_metrics:
@@ -54,14 +52,12 @@ class medaid:
             self.path = path + "/medaid"
         else:
             self.path = os.path.dirname(os.path.abspath(__file__)) + "/medaid"
-        
 
-        if search:
-            if search not in ["random", "grid"]:
-                raise ValueError("search must be either 'random' or 'grid'")
-            self.search = search
-        else:
-            self.search = "random" if mode == "explain" else "grid"
+
+
+        if search not in ["random", "grid"]:
+            raise ValueError("search must be either 'random' or 'grid'")
+        self.search = search
 
         self.preprocess = Preprocessing(target_column, self.path)
 
@@ -74,12 +70,11 @@ class medaid:
 
     def __repr__(self):
         # TODO: trzeba jakos ladnie zaprezentowac i guess - techniczna wizualizacja
-        return f"medaid(X, y, mode = {self.mode})"
+        return f"medaid(X, y, models={self.models}, metric={self.metric}, path={self.path}, search={self.search}, cv={self.cv}, n_iter={self.n_iter})"
 
     def __str__(self):
         # TODO trzeba jakos ladnie zaprezentowac i guess - ladna wizualizacja
         str = "medaid object\n"
-        str+=f"mode: {self.mode}\n"
         str+=f"metric: {self.metric}\n"
         if self.best_models is not None:
             str+="trained\n"
@@ -98,7 +93,7 @@ class medaid:
             return pd.read_csv(self.dataset_path, sep=None, engine='python')
         if self.dataset_path.endswith(".xlsx"):
             return pd.read_excel(self.dataset_path)
-    
+
     def preprocessing(self, df):
         return self.preprocess.preprocess(df)
 
@@ -108,7 +103,7 @@ class medaid:
         df = self.preprocessing(df)
         X = df.drop(columns=[self.target_column])
         y = df[self.target_column]
-        best_models, best_models_scores, best_metrics= train(X, y, self.models, self.metric, self.mode, self.path, self.search, self.cv, self.n_iter)
+        best_models, best_models_scores, best_metrics= train(X, y, self.models, self.metric, self.path, self.search, self.cv, self.n_iter)
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
