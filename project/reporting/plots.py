@@ -16,9 +16,10 @@ import seaborn as sns
 
 def distribution_plots(aid):
         #create a folder for the plots
+    df = aid.df_before
+    X = df.drop(columns=[aid.target_column])
+    y = df[aid.target_column]
     path = aid.path
-    X = aid.X
-    y = aid.y
     if not os.path.exists(f"{path}/distribution_plots"):
         os.makedirs(f"{path}/distribution_plots")
 
@@ -116,7 +117,7 @@ def shap_feature_importance_plot(aid):
             # Plot manually
             feature_importance.plot(kind='bar', x='Feature', y='Importance', legend=False)
             plt.title(f'{model.__class__.__name__} Feature Importance')
-            plt.savefig(f"{path}/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png")
+            plt.savefig(f"{path}/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png") #TODO: make sure the names of columns aren't cropped in images
             plt.clf()
             continue
 
@@ -129,7 +130,7 @@ def shap_feature_importance_plot(aid):
         shap_values = explainer(X)
 
         # Handle multi-class models
-        if len(shap_values.values.shape) == 3:  # Multi-class case
+        if len(shap_values.values.shape) > 2:  # Multi-class case
             shap_values_to_plot = shap_values.values.mean(axis=-1)  # Average across classes
         else:
             shap_values_to_plot = shap_values.values
@@ -146,28 +147,26 @@ def shap_feature_importance_plot(aid):
         plt.title(f'{model.__class__.__name__} Shap Feature Importance')
         plt.savefig(f"{path}/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png")
         plt.clf()
-
-    return
+    return None
 
 def makeplots(aid):
     best_models = aid.best_models
-    X = aid.X
-    y = aid.y
+    X_train = aid.X_train
+    y_train = aid.y_train
     path = aid.path
     original_stdout = sys.stdout
     original_stderr = sys.stderr
     sys.stdout = open(os.devnull, 'w')
     sys.stderr = open(os.devnull, 'w')
 
-    if not os.path.exists(f"{path}/plots"):
+    if not os.path.exists(f"{path}/plots"): #TODO: fix the convergence plots
         os.makedirs(f"{path}/plots")
 
     for model in best_models:
-
         if model.__class__.__name__ == "DecisionTreeClassifier":
-            viz = dtreeviz.model(model, X, y,
+            viz = dtreeviz.model(model, X_train, y_train,
                                  target_name="target",
-                                 feature_names=X.columns)
+                                 feature_names=X_train.columns)
             viz.view().save(f"{path}/plots/tree.svg")
             #save to png
             plot_tree(model, filled=True)
@@ -199,3 +198,13 @@ def makeplots(aid):
     shap_feature_importance_plot(aid)
 
     return None
+
+if __name__ == "__main__":
+    from project.do_poprawy_code.medaid import medaid
+    medaid = medaid(dataset_path='../../data/binary/cardio_train.csv', target_column='cardio', metric="recall", search="random", n_iter=1)
+    print(medaid.path)
+    medaid.train()
+    print("finished_training")
+    makeplots(medaid)
+    medaid.save()
+

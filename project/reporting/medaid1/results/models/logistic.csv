@@ -1,0 +1,2 @@
+Combination_ID,solver,penalty,C,f1,accuracy,precision,recall
+1,liblinear,l2,0.1,0.6295578220423139,0.6415535348472764,0.6505252274603638,0.609932995129795

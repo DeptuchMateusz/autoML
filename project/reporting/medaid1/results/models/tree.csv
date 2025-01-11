@@ -1,0 +1,2 @@
+Combination_ID,min_samples_split,min_samples_leaf,max_depth,f1,accuracy,precision,recall
+1,8,4,9,0.7057824145427984,0.7217857230370094,0.7480345591828952,0.668430062740947
