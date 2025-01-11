@@ -5,6 +5,7 @@ from project.preprocessing.scaler import Scaler
 from project.preprocessing.imputer import Imputer
 from project.preprocessing.preprocessing_info import PreprocessingCsv  
 from project.preprocessing.numeric_format_handler import NumericCommaHandler
+import os
 
 class Preprocessing:
     def __init__(self, target_column, path):

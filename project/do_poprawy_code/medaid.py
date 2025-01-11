@@ -2,9 +2,9 @@ import pandas as pd
 from project.preprocessing.preprocessing import Preprocessing
 from sklearn.model_selection import train_test_split
 
-from train import train
+from project.do_poprawy_code.train import train
 import os
-from plots import makeplots
+from project.do_poprawy_code.plots import makeplots
 import pickle
 import sys
 import os
@@ -15,7 +15,7 @@ class medaid:
     def __init__(self
                  , dataset_path
                  , target_column
-                 , models = None
+                 , models=None
                  , metric = "f1"
                  , path = None
                  , search  = 'random'
@@ -48,10 +48,22 @@ class medaid:
         self.best_models = None
         self.best_metrics = None
 
+
         if path:
             self.path = path + "/medaid"
         else:
-            self.path = os.path.dirname(os.path.abspath(__file__)) + "/medaid"
+            self.path = os.getcwd() + "/medaid"
+
+
+        counter = 1
+        original_path = self.path
+        while os.path.exists(self.path):
+            self.path = f"{original_path}{counter}"
+            counter += 1
+
+        os.makedirs(self.path, exist_ok=True)
+        os.makedirs(self.path + "/results", exist_ok=True)
+        os.makedirs(self.path + "/results/models", exist_ok=True)
 
 
 
@@ -67,6 +79,17 @@ class medaid:
         if type(n_iter) is not int:
             raise ValueError("n_iter must be an integer")
         self.n_iter = n_iter
+
+        self.test_size = test_size
+
+        self.df = self.read_data()
+        self.X = None
+        self.y = None
+        self.X_train = None
+        self.X_test = None
+        self.y_train = None
+        self.y_test = None
+
 
     def __repr__(self):
         # TODO: trzeba jakos ladnie zaprezentowac i guess - techniczna wizualizacja
@@ -99,11 +122,12 @@ class medaid:
 
 
     def train(self):
-        df = self.read_data()
-        df = self.preprocessing(df)
-        X = df.drop(columns=[self.target_column])
-        y = df[self.target_column]
-        best_models, best_models_scores, best_metrics= train(X, y, self.models, self.metric, self.path, self.search, self.cv, self.n_iter)
+        df = self.preprocessing(self.df)
+        self.X = df.drop(columns=[self.target_column])
+        self.y = df[self.target_column]
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=self.test_size, random_state=42)
+
+        best_models, best_models_scores, best_metrics= train(self.X_train, self.y_train,self.X_test, self.y_test, self.models, self.metric, self.path, self.search, self.cv, self.n_iter)
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
@@ -142,18 +166,3 @@ class medaid:
         with open(f"{self.path}/medaid.pkl", 'wb') as f:
             pickle.dump(self, f)
 
-if __name__ == "__main__":
-    # Example usage
-    import pandas as pd
-
-    data = pd.read_csv('../../data/binary/cardio_train.csv', sep=';')
-    X = data.drop(columns=['cardio', 'id'])
-    y = data['cardio']
-    # Create an instance of medaid
-    aid = medaid(X, y)
-
-    # Train the model
-    #aid.train()
-
-    # Generate a report
-    aid.report()
