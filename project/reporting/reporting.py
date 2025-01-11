@@ -56,7 +56,8 @@ class Reporting:
         f.write(f"</table>")
         #list the distributions of the features
         f.write(f"<h2>Feature distributions</h2>")
-        plots_path = os.path.join(self.path, 'medaid', 'distribution_plots')
+        print(self.path)
+        plots_path = os.path.join(self.path, 'distribution_plots')
         print(plots_path)
         for plot_file in os.listdir(plots_path):
             if plot_file.endswith('.png'):
