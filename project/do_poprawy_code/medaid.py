@@ -1,10 +1,9 @@
 import pandas as pd
 from project.preprocessing.preprocessing import Preprocessing
 from sklearn.model_selection import train_test_split
-
 from project.do_poprawy_code.train import train
-import os
-from project.do_poprawy_code.plots import makeplots
+from project.reporting.plots import makeplots
+from project.reporting.reporting import Reporting
 import pickle
 import sys
 import os
@@ -131,7 +130,7 @@ class medaid:
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
-        makeplots(self.best_models, self.X, self.y, self.path)
+        makeplots(self)
 
     def predict(self, X):
         if self.best_models is None:
@@ -146,21 +145,7 @@ class medaid:
         return self.best_metrics
 
     def report(self):
-        # Ensure log.txt is created
-        if not os.path.exists('log.txt'):
-            open('log.txt', 'w').close()
-
-        original_stdout = sys.stdout  # Save a reference to the original standard output
-        with open('log.txt', 'w') as f:
-            sys.stdout = f  # Change the standard output to the file we created.
-            print("Generating report...")
-            print(f"Best models: {self.best_models}")
-            print(f"Best models scores: {self.best_models_scores}")
-            print(f"Best metrics: {self.best_metrics}")
-            print("the end")
-            print("is working")
-            print("is only working when started from terminal")
-            sys.stdout = original_stdout  # Reset the standard output to its original value
+        Reporting(self, self.path).generate_report()
 
     def save(self):
         with open(f"{self.path}/medaid.pkl", 'wb') as f:

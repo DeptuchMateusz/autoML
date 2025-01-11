@@ -2,10 +2,6 @@
 #class will be used to generate reports in html
 
 import os
-import pandas as pd
-from dtreeviz import dtreeviz
-
-from project.do_poprawy_code.medaid import medaid
 
 class Reporting:
     def __init__(self, aid, path):
@@ -149,23 +145,3 @@ class Reporting:
         f.write(f"</html>")
 
         return None
-# main to check if it works
-if __name__ == "__main__":
-    import pandas as pd
-    from project.do_poprawy_code.medaid import medaid
-    data = pd.read_csv('../../data/binary/cardio_train.csv', sep=';')
-    X = data.drop(columns=['cardio', 'id'])
-    y = data['cardio']
-    # Create an instance of medaid
-    #aid = medaid(X, y, mode="perform", metric="recall", search="random", n_iter=2)
-    #aid.train()
-    #aid.save()
-
-    #read aid from file
-    import pickle
-    with open ('../../project/do_poprawy_code/medaid/medaid.pkl', 'rb') as f:
-        aid = pickle.load(f)
-
-    path = os.path.dirname(os.path.abspath(__file__))
-    report = Reporting(aid, path)
-    report.generate_report()
