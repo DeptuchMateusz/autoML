@@ -14,53 +14,6 @@ import sys
 warnings.filterwarnings("ignore", category=UserWarning)
 import seaborn as sns
 
-# Suppress output temporarily
-
-
-def makeplots(best_models, X, y, path):
-    original_stdout = sys.stdout
-    original_stderr = sys.stderr
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
-
-    if not os.path.exists(f"{path}/plots"):
-        os.makedirs(f"{path}/plots")
-
-    for model in best_models:
-
-        if model.__class__.__name__ == "DecisionTreeClassifier":
-            viz = dtreeviz.model(model, X, y,
-                                 target_name="target",
-                                 feature_names=X.columns)
-            viz.view().save(f"{path}/plots/tree.svg")
-            #save to png
-            plot_tree(model, filled=True)
-            plt.savefig(f"{path}/plots/tree.png")
-        elif model.__class__.__name__ == "LogisticRegression":
-            pass #TODO: feature importance?
-
-    for file in os.listdir(f"{path}/results/models"):
-        if file.endswith(".csv"):
-            df = pd.read_csv(f"{path}/results/models/{file}")
-            print(df)
-            plt.plot(df['f1'])
-            plt.plot(df['accuracy'])
-            plt.plot(df['precision'])
-            plt.plot(df['recall'])
-            plt.title(f'{file[:-4]} model')
-            plt.ylabel('score')
-            plt.xlabel('iteration')
-            plt.legend(['f1', 'accuracy', 'precision', 'recall'], loc='upper left')
-            plt.savefig(f"{path}/plots/{file}_convergence.png")
-            plt.clf()
-
-    sys.stdout.close()
-    sys.stderr.close()
-    sys.stdout =original_stdout
-    sys.stderr = original_stderr
-
-    return None
-
 def distribution_plots(aid):
         #create a folder for the plots
     path = aid.path
@@ -202,16 +155,53 @@ def shap_feature_importance_plot(aid):
 
     return
 
+def makeplots(aid):
+    best_models = aid.best_models
+    X = aid.X
+    y = aid.y
+    path = aid.path
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
 
-#main to test creating all plots
+    if not os.path.exists(f"{path}/plots"):
+        os.makedirs(f"{path}/plots")
 
-if __name__ == "__main__":
-    import pickle
-    with open('../../project/do_poprawy_code/medaid/medaid.pkl', 'rb') as f:
-        aid = pickle.load(f)
-    print(aid.path)
-    #distribution_plots(aid)
-    #correlation_plot(aid)
-    #make_confusion_matrix(aid)
-    #shap_feature_importance_plot(aid)
-    makeplots(aid.best_models, aid.X, aid.y, aid.path)
+    for model in best_models:
+
+        if model.__class__.__name__ == "DecisionTreeClassifier":
+            viz = dtreeviz.model(model, X, y,
+                                 target_name="target",
+                                 feature_names=X.columns)
+            viz.view().save(f"{path}/plots/tree.svg")
+            #save to png
+            plot_tree(model, filled=True)
+            plt.savefig(f"{path}/plots/tree.png")
+
+    for file in os.listdir(f"{path}/results/models"):
+        if file.endswith(".csv"):
+            df = pd.read_csv(f"{path}/results/models/{file}")
+            print(df)
+            plt.plot(df['f1'])
+            plt.plot(df['accuracy'])
+            plt.plot(df['precision'])
+            plt.plot(df['recall'])
+            plt.title(f'{file[:-4]} model')
+            plt.ylabel('score')
+            plt.xlabel('iteration')
+            plt.legend(['f1', 'accuracy', 'precision', 'recall'], loc='upper left')
+            plt.savefig(f"{path}/plots/{file}_convergence.png")
+            plt.clf()
+
+    sys.stdout.close()
+    sys.stderr.close()
+    sys.stdout =original_stdout
+    sys.stderr = original_stderr
+
+    distribution_plots(aid)
+    correlation_plot(aid)
+    make_confusion_matrix(aid)
+    shap_feature_importance_plot(aid)
+
+    return None
