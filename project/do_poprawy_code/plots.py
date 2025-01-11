@@ -18,10 +18,10 @@ import seaborn as sns
 
 
 def makeplots(best_models, X, y, path):
-    #original_stdout = sys.stdout
-    #original_stderr = sys.stderr
-    #sys.stdout = open(os.devnull, 'w')
-    #sys.stderr = open(os.devnull, 'w')
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
 
     if not os.path.exists(f"{path}/plots"):
         os.makedirs(f"{path}/plots")
@@ -39,9 +39,10 @@ def makeplots(best_models, X, y, path):
         elif model.__class__.__name__ == "LogisticRegression":
             pass #TODO: feature importance?
 
-    for file in os.listdir(f"{path}/results"):
+    for file in os.listdir(f"{path}/results/models"):
         if file.endswith(".csv"):
-            df = pd.read_csv(f"{path}/results/{file}")
+            df = pd.read_csv(f"{path}/results/models/{file}")
+            print(df)
             plt.plot(df['f1'])
             plt.plot(df['accuracy'])
             plt.plot(df['precision'])
@@ -53,10 +54,10 @@ def makeplots(best_models, X, y, path):
             plt.savefig(f"{path}/plots/{file}_convergence.png")
             plt.clf()
 
-    #sys.stdout.close()
-    #sys.stderr.close()
-    #sys.stdout =original_stdout
-    #sys.stderr = original_stderr
+    sys.stdout.close()
+    sys.stderr.close()
+    sys.stdout =original_stdout
+    sys.stderr = original_stderr
 
     return None
 

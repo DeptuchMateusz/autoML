@@ -1,6 +1,6 @@
 from sklearn.metrics import f1_score, precision_score, recall_score
 
-from search import CustomRandomizedSearchCV, CustomGridSearchCV
+from project.do_poprawy_code.search import CustomRandomizedSearchCV, CustomGridSearchCV
 import os
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -35,7 +35,8 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
             'n_estimators': [100, 300, 400],
             'max_depth': [3, 5, 8, 11, 15],
             'min_samples_split': [2, 4, 6, 8],
-            'min_samples_leaf': [1, 3, 5]
+            'min_samples_leaf': [1, 3, 5],
+           # 'n_jobs': [-1]
         },
         "xgboost": {
             'verbosity': [0],
@@ -48,7 +49,8 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
             'colsample_bynode': [0.5, 0.7, 1],
             'reg_alpha': [0, 0.1, 0.5, 1, 10],
             'reg_lambda': [0, 0.1, 0.5, 1, 10],
-            'gamma': [0, 0.1, 0.5, 1, 10]
+            'gamma': [0, 0.1, 0.5, 1, 10],
+            # 'n_jobs': [-1]
         },
         "lightgbm": {
         'verbosity': [-1],
@@ -63,12 +65,10 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
         'subsample' : [0.7,0.75],
         'reg_alpha' : [1,1.2],
         'reg_lambda' : [1,1.2,1.4],
+        # 'n_jobs': [-1]
         }
     }
 
-    #create results folder
-    if not os.path.exists(f"{path}/results"):
-        os.makedirs(f"{path}/results")
 
     best_models = []
     best_models_scores = []
@@ -96,7 +96,7 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
                                           refit = metric, name=model)
 
         rs.fit(X, y)
-        rs.results_df.to_csv(f"{path}/results/{model}.csv", index=False)
+        rs.results_df.to_csv(f"{path}/results/models/{model}.csv", index=False)
         best_models.append(rs.best_estimator_)
         best_models_scores.append(rs.best_score_)
 
