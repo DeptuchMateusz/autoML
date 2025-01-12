@@ -106,8 +106,28 @@ class Reporting:
                 <h2>Data Analysis</h2>
                 <p><strong>Number of rows:</strong> {len(self.aid.X)}</p>
                 <p><strong>Number of columns:</strong> {len(self.aid.X.columns)}</p>
+                <p><strong>Target variable:</strong> {self.aid.y.name}</p>
+                <p><strong>Number of unique classes in target:</strong> {self.aid.y.nunique()}</p>
             </section>
             """)
+
+            # DataFrame head
+            f.write("<section><h2>Data Frame Preview</h2><table><tr>")
+            for col in self.aid.df_before.columns:
+                f.write(f"<th>{col}</th>")
+            f.write("</tr>")
+            for row in self.aid.df_before.head().values:
+                f.write("<tr>")
+                for i, value in enumerate(row):
+                    if math.isnan(value):
+                        f.write("<td>NaN</td>")
+                    else:
+                        if self.aid.df_before.iloc[:, i].nunique() == 2:
+                            f.write(f"<td>{int(value)}</td>")
+                        else:
+                            f.write(f"<td>{value}</td>")
+                f.write("</tr>")
+            f.write("</table></section>")
 
             # Preprocessing details section
             f.write("<section><h2>Preprocessing Details</h2><table>")
@@ -138,23 +158,6 @@ class Reporting:
                     f.write(f"<img src='{plot_path}' width='250' height='200'>")
             f.write("</section>")
 
-            # DataFrame head
-            f.write("<section><h2>Data Frame Preview</h2><table><tr>")
-            for col in self.aid.df_before.columns:
-                f.write(f"<th>{col}</th>")
-            f.write("</tr>")
-            for row in self.aid.df_before.head().values:
-                f.write("<tr>")
-                for i, value in enumerate(row):
-                    if math.isnan(value):
-                        f.write("<td>NaN</td>")
-                    else:
-                        if self.aid.df_before.iloc[:, i].nunique() == 2:
-                            f.write(f"<td>{int(value)}</td>")
-                        else:
-                            f.write(f"<td>{value}</td>")
-                f.write("</tr>")
-            f.write("</table></section>")
 
             # Models and metrics
             f.write(f"""
@@ -173,7 +176,10 @@ class Reporting:
                     </tr>
             """)
             for model in self.aid.best_metrics[['model', 'accuracy', 'precision', 'recall', 'f1']].values:
+                #write only with three decimal places
+                model = [f"{value:.4f}" if isinstance(value, float) else value for value in model]
                 f.write("<tr>" + "".join(f"<td>{value}</td>" for value in model) + "</tr>")
+
             f.write("</table></section>")
             f.write("""<section>
                     <h2>Explanation of Medical Metrics</h2>
