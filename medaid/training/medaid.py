@@ -54,8 +54,8 @@ class medaid:
             self.path = os.getcwd() + "/medaid1"
 
 
-        counter = 2
-        original_path = self.path
+        counter = 1
+        original_path = os.getcwd() + "/medaid"
         while os.path.exists(self.path):
             self.path = f"{original_path}{counter}"
             counter += 1

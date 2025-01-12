@@ -1,17 +1,31 @@
 #here will be a class for reporting
 #class will be used to generate reports in html
 import math
-import os
 
+from lightgbm import LGBMClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, roc_auc_score
+from sklearn.tree import DecisionTreeClassifier
 
 
 class Reporting:
+
     def __init__(self, aid, path):
         self.path = path
         self.aid = aid
 
+    import math
+
+    def is_nan(value):
+        try:
+            # Convert to float if possible and check if it's NaN
+            return math.isnan(float(value))
+        except ValueError:
+            # If value cannot be converted to float, treat it as non-NaN
+            return False
+
     def generate_report(self):
+        import os
         if not os.path.exists(f"{self.path}/report"):
             os.makedirs(f"{self.path}/report")
 
@@ -27,72 +41,81 @@ class Reporting:
                 <meta charset='UTF-8'>
                 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
                 <title>Model Comparison Report</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        line-height: 1.6;
-                        color: #333;
-                        background-color: #f8f9fa;
-                        margin: 0;
-                        padding: 0;
-                    }
-                    header {
-                        background-color: #343a40;
-                        color: #fff;
-                        padding: 20px;
-                        text-align: center;
-                    }
-                    header h1 {
-                        margin: 0;
-                    }
-                    section {
-                        padding: 20px;
-                        margin: 20px auto;
-                        background: #fff;
-                        border-radius: 8px;
-                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                        max-width: 1200px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-bottom: 20px;
-                    }
-                    table th, table td {
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: left;
-                    }
-                    table th {
-                        background-color: #343a40;
-                        color: white;
-                    }
-                    img {
-                        max-width: 100%;
-                        height: auto;
-                        margin: 10px 0;
-                        border-radius: 4px;
-                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-                    }
-                    .image-row {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: flex-start;
-                        gap: 20px;
-                        margin-bottom: 20px;
-                    }
-                    .image-row img {
-                        flex: 1;
-                        max-height: 400px;
-                    }
-                    .scrollable-container {
-                        width: 100%;
-                        height: 600px;
-                        overflow: auto;
-                        border: 1px solid #ccc;
-                        margin-top: 20px;
-                    }
-                </style>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: #343a40;
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+    }
+    header h1 {
+        margin: 0;
+    }
+    section {
+        padding: 20px;
+        margin: 20px auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-width: 1200px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    table th, table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    table th {
+        background-color: #343a40;
+        color: white;
+    }
+    img {
+        max-width: 100%;
+        height: auto;
+        margin: 10px 0;
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    .image-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .image-row img {
+        flex: 1;
+        max-height: 400px;
+    }
+    .scrollable-container {
+        width: 100%;
+        height: 600px;
+        overflow: auto;
+        border: 1px solid #ccc;
+        margin-top: 20px;
+    }
+    .scrollable-table {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .scrollable-table table {
+        min-width: 100%;
+        border: 1px solid #ddd;
+    }
+</style>
             </head>
             <body>
                 <header>
@@ -112,25 +135,28 @@ class Reporting:
             """)
 
             # DataFrame head
-            f.write("<section><h2>Data Frame Preview</h2><table><tr>")
+            f.write("<section><h2>Data Frame Preview</h2><div class='scrollable-table'><table><tr>")
             for col in self.aid.df_before.columns:
                 f.write(f"<th>{col}</th>")
             f.write("</tr>")
             for row in self.aid.df_before.head().values:
                 f.write("<tr>")
                 for i, value in enumerate(row):
-                    if math.isnan(value):
+                    if Reporting.is_nan(value):
                         f.write("<td>NaN</td>")
                     else:
                         if self.aid.df_before.iloc[:, i].nunique() == 2:
                             f.write(f"<td>{int(value)}</td>")
+                        #if float display 2 digits after decimal
+                        elif type(value)==float:
+                            f.write(f"<td>{value:.3f}</td>")
                         else:
                             f.write(f"<td>{value}</td>")
                 f.write("</tr>")
             f.write("</table></section>")
 
             # Preprocessing details section
-            f.write("<section><h2>Preprocessing Details</h2><table>")
+            f.write("<section><h2>Preprocessing Details</h2><div class='scrollable-table'><table>")
             for line in open(f"{self.path}/results/preprocessing_details.csv", 'r'):
                 f.write("<tr>" + "".join(f"<td>{value.strip()}</td>" for value in line.split(",")) + "</tr>")
             f.write("</table></section>")
@@ -144,14 +170,18 @@ class Reporting:
                     f.write(f"<img src='{plot_path}' width='250' height='200'>")
             f.write("</div></section>")
 
-            # Correlation matrix and correlation with target
+
+                # Correlation matrix and correlation with target
             f.write(f"""
             <section>
-                <h2>Correlation Analysis</h2>
-                <h3>Correlation Matrix</h3>
-                <img src='../correlation_plots/correlation_matrix.png' style="width: 600px; height: auto;">
-                <h3>Correlation with {self.aid.y.name}</h3>
-            """)
+                <h2>Correlation Analysis</h2>""")
+
+            if len(self.aid.X.columns) < 12:
+                f.write(f"""
+                    <h3>Correlation Matrix</h3>
+                    <img src='../correlation_plots/correlation_matrix.png' style="width: 600px; height: auto;">
+                    <h3>Correlation with {self.aid.y.name}</h3>
+                """)
             for plot_file in os.listdir(os.path.join(self.path, 'correlation_plots')):
                 if plot_file.endswith('.png') and plot_file != 'correlation_matrix.png':
                     plot_path = f'../correlation_plots/{plot_file}'
@@ -195,6 +225,9 @@ class Reporting:
                 </section>""")
 
             # Inside the section for each model
+            import os
+            from supertree import SuperTree
+
             for model in self.aid.best_models:
                 # Calculate statistics for medical relevance
                 y_pred = model.predict(self.aid.X_test)
@@ -214,7 +247,6 @@ class Reporting:
                 <section>
                     <h2>{model.__class__.__name__}</h2>
                     <h3>Model Performance Metrics</h3>
-                    <!-- Medical Metrics Explanation -->
                     <ul>
                         <li><strong>Sensitivity (Recall):</strong> {sensitivity:.2f}</li>
                         <li><strong>Specificity:</strong> {specificity:.2f}</li>
@@ -232,27 +264,30 @@ class Reporting:
                         <div>
                             <h3>Feature Importance</h3>
                 """)
+
                 if os.path.exists(
                         f"{self.path}/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png"):
                     f.write(
                         f"<img src='../shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png'>")
                 f.write("</div></div>")
-
-                if model.__class__.__name__ == "DecisionTreeClassifier":
-                    f.write("""
-                    <h3>Tree Visualization</h3>
-                    <div class="scrollable-container">
-                        <img src="../plots/tree.svg" alt="Decision Tree Visualization">
-                    </div>
-                    """)
-                f.write("</section>")
+                # Check if the model is DecisionTree or RandomForest
+                if isinstance(model, (DecisionTreeClassifier, RandomForestClassifier)):
+                    if os.path.exists(f"{self.path}/supertree_visualizations/{model.__class__.__name__}_tree.html"):
+                        f.write(f"""
+                            <h3>Tree Visualization</h3>
+                            <iframe src="../supertree_visualizations/{model.__class__.__name__}_tree.html" 
+                                    style="width:100%; height:400px; border:none;"></iframe>
+                            """)
+                        f.write("</section>")
 
             # Close HTML
             f.write("</body></html>")
-        return None
+            return None
+
 
 if __name__ == "__main__":
     from medaid.training.medaid import medaid
+    import os
     import pickle
     with open('medaid1/medaid.pkl', 'rb') as file:
         medaid = pickle.load(file)
