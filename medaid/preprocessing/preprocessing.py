@@ -1,10 +1,10 @@
 import pandas as pd
-from project.preprocessing.column_removal import ColumnRemover
-from project.preprocessing.encoder import Encoder
-from project.preprocessing.scaler import Scaler
-from project.preprocessing.imputer import Imputer
-from project.preprocessing.preprocessing_info import PreprocessingCsv  
-from project.preprocessing.numeric_format_handler import NumericCommaHandler
+from medaid.preprocessing.column_removal import ColumnRemover
+from medaid.preprocessing.encoder import Encoder
+from medaid.preprocessing.scaler import Scaler
+from medaid.preprocessing.imputer import Imputer
+from medaid.preprocessing.preprocessing_info import PreprocessingCsv
+from medaid.preprocessing.numeric_format_handler import NumericCommaHandler
 import os
 
 class Preprocessing:

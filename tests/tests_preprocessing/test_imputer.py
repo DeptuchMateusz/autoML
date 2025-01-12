@@ -1,5 +1,5 @@
 import pandas as pd
-from project.preprocessing.imputer import Imputer 
+from medaid.preprocessing.imputer import Imputer
 
 def test_imputation():
 

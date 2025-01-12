@@ -200,7 +200,7 @@ def makeplots(aid):
     return None
 
 if __name__ == "__main__":
-    from project.do_poprawy_code.medaid import medaid
+    from medaid.training.medaid import medaid
     medaid = medaid(dataset_path='../../data/binary/cardio_train.csv', target_column='cardio', metric="recall", search="random", n_iter=1)
     print(medaid.path)
     medaid.train()
