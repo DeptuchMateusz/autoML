@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from project.preprocessing.preprocessing import Preprocessing
+from medaid.preprocessing.preprocessing import Preprocessing
 
 class TestPreprocessing(unittest.TestCase):
     def setUp(self):

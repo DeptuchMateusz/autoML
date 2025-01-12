@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from project.preprocessing.column_removal import ColumnRemover
+from medaid.preprocessing.column_removal import ColumnRemover
 
 class TestColumnRemover(unittest.TestCase):
     def setUp(self):

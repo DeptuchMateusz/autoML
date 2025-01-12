@@ -252,7 +252,7 @@ class Reporting:
         return None
 
 if __name__ == "__main__":
-    from project.do_poprawy_code.medaid import medaid
+    from medaid.training.medaid import medaid
     import pickle
     with open('medaid1/medaid.pkl', 'rb') as file:
         medaid = pickle.load(file)
