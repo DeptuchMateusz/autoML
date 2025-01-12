@@ -1,6 +1,6 @@
 from sklearn.metrics import f1_score, precision_score, recall_score
 
-from project.do_poprawy_code.search import CustomRandomizedSearchCV, CustomGridSearchCV
+from medaid.training.search import CustomRandomizedSearchCV, CustomGridSearchCV
 import os
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier

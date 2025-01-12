@@ -1,9 +1,9 @@
 import pandas as pd
-from project.preprocessing.preprocessing import Preprocessing
+from medaid.preprocessing.preprocessing import Preprocessing
 from sklearn.model_selection import train_test_split
-from project.do_poprawy_code.train import train
-from project.reporting.plots import makeplots
-from project.reporting.reporting import Reporting
+from medaid.training.train import train
+from medaid.reporting.plots import makeplots
+from medaid.reporting.reporting import Reporting
 import pickle
 import sys
 import os
@@ -49,12 +49,12 @@ class medaid:
 
 
         if path:
-            self.path = path + "/medaid"
+            self.path = path + "/medaid1"
         else:
-            self.path = os.getcwd() + "/medaid"
+            self.path = os.getcwd() + "/medaid1"
 
 
-        counter = 1
+        counter = 2
         original_path = self.path
         while os.path.exists(self.path):
             self.path = f"{original_path}{counter}"
