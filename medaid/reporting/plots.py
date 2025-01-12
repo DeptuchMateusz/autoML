@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+from IPython.core.pylabtools import figsize
 from sklearn.metrics import confusion_matrix
 from sklearn.tree import plot_tree
 import matplotlib.pyplot as plt
@@ -11,6 +12,7 @@ import os
 import pandas as pd
 import warnings
 import sys
+
 warnings.filterwarnings("ignore", category=UserWarning)
 import seaborn as sns
 
@@ -52,9 +54,10 @@ def correlation_plot(aid):
 
     corr = X.corr()
     #plot the correlation matrix the scale should be from -1 to 1
-    plt.figure(figsize=(10, 10))
+    plt.figure()
     sns.heatmap(corr, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
     plt.title('Correlation matrix')
+    plt.tight_layout()
     plt.savefig(f"{path}/correlation_plots/correlation_matrix.png")
     plt.clf()
 
@@ -98,9 +101,9 @@ def shap_feature_importance_plot(aid):
     # Create a folder for the plots
     path = aid.path
     # Use a subset of the data
-    X = aid.X.head(int(len(aid.X) * 0.01))  # Adjust as needed
+    X = aid.X.head(int(len(aid.X) * 0.03))  # Adjust as needed
     if not isinstance(X, pd.DataFrame):
-        X = pd.DataFrame(X, columns=aid.X.columns)
+        X = pd.DataFrame(X, columns=X.columns)
     if not os.path.exists(f"{path}/shap_feature_importance"):
         os.makedirs(f"{path}/shap_feature_importance")
 
@@ -117,6 +120,8 @@ def shap_feature_importance_plot(aid):
             # Plot manually
             feature_importance.plot(kind='bar', x='Feature', y='Importance', legend=False)
             plt.title(f'{model.__class__.__name__} Feature Importance')
+            #add some space below plot not to cut the x labels
+            plt.tight_layout()
             plt.savefig(f"{path}/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png") #TODO: make sure the names of columns aren't cropped in images
             plt.clf()
             continue
@@ -145,12 +150,69 @@ def shap_feature_importance_plot(aid):
         # Plot manually
         feature_importance.plot(kind='bar', x='Feature', y='Importance', legend=False)
         plt.title(f'{model.__class__.__name__} Shap Feature Importance')
+        plt.tight_layout()
         plt.savefig(f"{path}/shap_feature_importance/{model.__class__.__name__}_custom_feature_importance.png")
         plt.clf()
     return None
 
+def generate_supertree_visualizations(medaid, output_dir="supertree_visualizations"):
+    from supertree import SuperTree
+    import os
+
+    """
+    Generate and save SuperTree visualizations for models in the Medaid object.
+
+    Parameters:
+    - medaid: The Medaid object containing best models, training data, and metadata.
+    - output_dir: Directory where visualizations will be saved (default: "supertree_visualizations").
+
+    Output:
+    - Saves HTML visualizations for each model in the specified directory.
+    """
+
+    # Ensure output directory exists
+    output_path = os.path.join(medaid.path, output_dir)
+    os.makedirs(output_path, exist_ok=True)
+
+    # Feature and target names
+    try:
+        feature_names = medaid.X_train.columns.tolist()  # Feature names from training data
+        target_names = [str(label) for label in medaid.y_train.unique()]  # Target names from training data
+    except AttributeError as e:
+        print(f"Error extracting feature or target names: {e}")
+        return
+
+    # Loop through best models and create visualizations for supported ones
+    for model in medaid.best_models:
+        model_name = model.__class__.__name__
+        print(f"Processing model: {model_name}")
+
+        try:
+            # Create a SuperTree instance
+            st = SuperTree(
+                model=model,
+                #X = medaid.X_train,
+                #y = medaid.y_train, dziwne że tego nie ma bo w examples jest
+                feature_names=feature_names,
+                target_names=target_names,
+            )
+
+            # Optional: Display the tree interactively in a Jupyter Notebook
+            # st.show_tree()
+
+            # Save the HTML visualization
+            html_path = os.path.join(output_path, f"{model_name}_tree.html")
+            st.save_html(html_path)
+            print(f"Saved SuperTree visualization for {model_name} at: {html_path}")
+
+        except Exception as e:
+            print(f"Skipping model {model_name}: {e}")
+
+    print("SuperTree visualizations generation complete.")
+    return None
+
 def makeplots(aid):
-    best_models = aid.best_models
+    """best_models = aid.best_models
     X_train = aid.X_train
     y_train = aid.y_train
     path = aid.path
@@ -190,21 +252,26 @@ def makeplots(aid):
     sys.stdout.close()
     sys.stderr.close()
     sys.stdout =original_stdout
-    sys.stderr = original_stderr
+    sys.stderr = original_stderr """
 
     distribution_plots(aid)
     correlation_plot(aid)
     make_confusion_matrix(aid)
     shap_feature_importance_plot(aid)
+    generate_supertree_visualizations(aid)
 
     return None
 
-if __name__ == "__main__":
+
+
+if __name__ == "__main__": #main was created for testing purposes
     from medaid.training.medaid import medaid
-    medaid = medaid(dataset_path='../../data/binary/cardio_train.csv', target_column='cardio', metric="recall", search="random", n_iter=1)
+    medaid = medaid(dataset_path='../../data/binary/alzheimers_disease_data.csv', target_column='Diagnosis', metric="recall", search="random", n_iter=3)
     print(medaid.path)
     medaid.train()
     print("finished_training")
     makeplots(medaid)
     medaid.save()
+
+
 
