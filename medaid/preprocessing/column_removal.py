@@ -52,8 +52,6 @@ class ColumnRemover:
         
         return dataframe
 
-
-
     def remove_highly_correlated_columns(self, dataframe):
         """
         Identify highly correlated numeric columns and remove one from each pair.
