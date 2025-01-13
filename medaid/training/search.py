@@ -80,7 +80,8 @@ class CustomGridSearchCV(GridSearchCV):
                          pre_dispatch=pre_dispatch,
                          error_score=error_score,
                          return_train_score=return_train_score,
-                         scoring=scoring)
+                         scoring=scoring,
+                         )
         self.results_df = pd.DataFrame()
         self.name = name
 
