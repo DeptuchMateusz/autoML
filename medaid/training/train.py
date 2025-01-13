@@ -10,7 +10,9 @@ from lightgbm import LGBMClassifier
 import pandas as pd
 from sklearn.metrics import get_scorer
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning, message=".*ConvergenceWarning.*")
+from sklearn.exceptions import ConvergenceWarning
+
+
 
 
 
@@ -19,7 +21,7 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*ConvergenceWa
 
 
 def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
-    warnings.filterwarnings("ignore", category=UserWarning, message=".*ConvergenceWarning.*")
+    warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
     param_grids = {
         "logistic": {
@@ -83,7 +85,7 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
     for model in models:
         param_grid = param_grids[model]
         if model == "logistic":
-            model_with_params = LogisticRegression(n_jobs=-1, max_iter=1000)
+            model_with_params = LogisticRegression(n_jobs=-1, max_iter=10000)
         elif model == "tree":
             model_with_params = DecisionTreeClassifier()
         elif model == "random_forest":
@@ -96,7 +98,7 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
             rs = CustomRandomizedSearchCV(model_with_params, param_grid, n_iter=n_iter, cv=cv,
                                           scoring={'f1': make_scorer(f1_score, average='weighted'),
                                                    'accuracy': make_scorer(accuracy_score),
-                                                   'precision': make_scorer(precision_score, average='weighted'),
+                                                   'precision': make_scorer(precision_score, average='weighted', zero_division=0),
                                                    'recall': make_scorer(recall_score, average='weighted')},
                                           refit = metric, name=model,
                                           n_jobs=-1)
@@ -104,7 +106,7 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
             rs = CustomGridSearchCV(model_with_params, param_grid,  cv=cv,
                                           scoring={'f1': make_scorer(f1_score, average='weighted'),
                                                    'accuracy': make_scorer(accuracy_score),
-                                                   'precision': make_scorer(precision_score, average='weighted'),
+                                                   'precision': make_scorer(precision_score, average='weighted', zero_division=0),
                                                    'recall': make_scorer(recall_score, average='weighted')},
                                           refit = metric, name=model)
 
@@ -114,7 +116,16 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
         best_models_scores.append(rs.best_score_)
 
 
-        scorer = get_scorer(metric)
+        # scorer = get_scorer(metric)
+        # create with make_scorer depending on metric = f1, accuracy, precision, recall, with average='weighted'
+        metrics_dict = {
+            'f1': make_scorer(f1_score, average='weighted'),
+            'accuracy': make_scorer(accuracy_score),
+            'precision': make_scorer(precision_score, average='weighted', zero_division=0),
+            'recall': make_scorer(recall_score, average='weighted')
+        }
+        scorer = metrics_dict[metric]
+
 
         test_best_score = scorer(rs.best_estimator_, X_test, y_test)
         best_metrics = {
@@ -127,7 +138,7 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
             'test_best_score': test_best_score,
             'test_f1': f1_score(y_test, rs.best_estimator_.predict(X_test), average='weighted'),
             'test_accuracy': accuracy_score(y_test, rs.best_estimator_.predict(X_test)),
-            'test_precision': precision_score(y_test, rs.best_estimator_.predict(X_test), average='weighted'),
+            'test_precision': precision_score(y_test, rs.best_estimator_.predict(X_test), average='weighted', zero_division=0),
             'test_recall': recall_score(y_test, rs.best_estimator_.predict(X_test), average='weighted')
         }
         metrics_list.append(best_metrics)

@@ -1,4 +1,8 @@
+import warnings
+
 import pandas as pd
+from sklearn.exceptions import ConvergenceWarning
+
 from medaid.preprocessing.preprocessing import Preprocessing
 from sklearn.model_selection import train_test_split
 from medaid.training.train import train
@@ -122,6 +126,7 @@ class medaid:
 
 
     def train(self):
+        warnings.filterwarnings("ignore", category=ConvergenceWarning)
         df = self.preprocessing(self.df_before)
         self.X = df.drop(columns=[self.target_column])
         self.y = df[self.target_column]
