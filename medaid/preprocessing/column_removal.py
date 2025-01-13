@@ -20,7 +20,9 @@ class ColumnRemover:
 
     def remove_id_columns(self, dataframe):
         """
-        Remove columns that have 'id' in their name (case insensitive).
+        Remove columns that have 'id' in their name (case insensitive), 
+        have as many unique values as there are rows in the DataFrame, 
+        and are not of type float.
 
         Parameters:
         - dataframe (pd.DataFrame): The DataFrame to process.
@@ -28,13 +30,29 @@ class ColumnRemover:
         Returns:
         - dataframe (pd.DataFrame): The DataFrame with 'id' columns removed.
         """
-        id_columns_to_remove = [col for col in dataframe.columns if 'id' in col.lower()]
+        # Identify columns that contain 'id' in the name (case insensitive), 
+        # have as many unique values as there are rows, and are not float type
+        id_columns_to_remove = [
+            col for col in dataframe.columns 
+            if 'id' in col.lower() 
+            and dataframe[col].nunique() == len(dataframe)
+            and dataframe[col].dtype != 'float64'
+        ]
+        
+        # Process each identified column
         for col in id_columns_to_remove:
+            # Ensure not removing the target column if it contains 'id'
             if col == self.target_column:
                 continue
-            self.removal_info[col] = {"Removed": True, "Reason": "Contains 'id'"}
+            # Record removal information for the column
+            self.removal_info[col] = {"Removed": True, "Reason": "Contains 'id', has unique values equal to rows, and is not float"}
+        
+        # Drop identified columns from the dataframe
         dataframe.drop(columns=id_columns_to_remove, inplace=True)
+        
         return dataframe
+
+
 
     def remove_highly_correlated_columns(self, dataframe):
         """

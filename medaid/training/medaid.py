@@ -131,7 +131,7 @@ class medaid:
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
-        #makeplots(self) #TODO: odkomentować linijkę jesli juz bedzie dzialac
+        makeplots(self) #TODO: odkomentować linijkę jesli juz bedzie dzialac
 
     def predict(self, X):
         if self.best_models is None:
