@@ -29,10 +29,13 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*ConvergenceWa
 def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
     warnings.filterwarnings("ignore", category=UserWarning, message=".*ConvergenceWarning.*")
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     number_of_classes = len(y.unique()) if len(y.unique()) > 2 else 1
 =======
 >>>>>>> ed71fee (male poprawki)
+=======
+>>>>>>> 5c426dc (male poprawki)
 
     number_of_classes = len(y.unique()) if len(y.unique()) > 2 else 1
 
