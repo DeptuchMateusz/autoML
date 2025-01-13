@@ -161,13 +161,15 @@ class PredictExplainer:
 
         # Get target column name
         target_column = self.medaid.target_column
+        # Calculate the prediction probability
+        prediction_proba = self.model.predict_proba(processed_input_data)[0]
 
         # Perform prediction analysis
-        prediction_analysis = self.analyze_prediction(prediction, target_column)
+        prediction_analysis = self.analyze_prediction(prediction, target_column, prediction_proba)
 
         return prediction, prediction_analysis
 
-    def analyze_prediction(self, prediction, target_column):
+    def analyze_prediction(self, prediction, target_column, prediction_proba):
         """
         Analyzes the predicted value of the target feature and compares it to the dataset.
         """
@@ -181,41 +183,51 @@ class PredictExplainer:
 
         if len(value_counts) == 2:  # Binary classification
             analysis = f"""
-            <div class="feature">
-                <div class="feature-header" onclick="toggleFeature('target') >Target Feature: {target_column} - Predicted Value: {self._format_value(prediction)}</div>
-                <div class="feature-content" id="target">
-                    The predicted value for the target feature is <span>{self._format_value(prediction)}</span>.
-                    <div class="feature-category">
-                        <strong>Prediction Analysis (Binary Classification):</strong>
-                        <ul>
-                            <li>Class 0 occurs in {value_counts.get(0, 0):.2f}% of patients.</li>
-                            <li>Class 1 occurs in {value_counts.get(1, 0):.2f}% of patients.</li>
-                            <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 50 else 'rare'} in the dataset.</li>
-                        </ul>
-                    </div>
+            <div class="classification-report">
+                <div class="report-header">
+                    <h2>Classification Report</h2>
+                </div>
+                <div class="report-details">
+                    <p><strong>Target Feature:</strong> {target_column}</p>
+                    <p><strong>Predicted Value:</strong> {self._format_value(prediction)}</p>
+                    <p><strong>Prediction Probability:</strong> {prediction_proba}</p>
+                    <p><strong>Model Used:</strong> {self.model.__class__.__name__}</p>
+                </div>
+                <div class="report-analysis">
+                    <h3>Prediction Analysis (Binary Classification):</h3>
+                    <ul>
+                        <li>Class 0 occurs in {value_counts.get(0, 0):.2f}% of patients.</li>
+                        <li>Class 1 occurs in {value_counts.get(1, 0):.2f}% of patients.</li>
+                        <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 50 else 'rare'} amongst other patients.</li>
+                    </ul>
                 </div>
             </div>
             """
         else:  # Multiclass classification
             analysis = f"""
-            <div class="feature">
-                <div class="feature-header" onclick="toggleFeature('target') >Target Feature: {target_column} - Predicted Value: {self._format_value(prediction)}</div>
-                <div class="feature-content" id="target">
-                    The predicted value for the target feature is <span>{self._format_value(prediction)}</span>.
-                    <div class="feature-category">
-                        <strong>Prediction Analysis (Multiclass Classification):</strong>
+            <div class="classification-report">
+                <div class="report-header">
+                    <h2>Classification Report</h2>
+                </div>
+                <div class="report-details">
+                    <p><strong>Target Feature:</strong> {target_column}</p>
+                    <p><strong>Predicted Value:</strong> {self._format_value(prediction)}</p>
+                    <p><strong>Prediction Probabilities:</strong> {prediction_proba}</p>
+                    <p><strong>Model Used:</strong> {self.model.__class__.__name__}</p>
+                </div>
+                <div class="report-analysis">
+                    <h3>Prediction Analysis (Multiclass Classification):</h3>
+                    <ul>
+                        <li>Class distribution:</li>
                         <ul>
-                            <li>Class distribution:</li>
-                            <ul>
             """
             for class_label, percentage in value_counts.items():
                 analysis += f"<li>Class {class_label}: {percentage:.2f}% of patients.</li>"
 
             analysis += f"""
-                            </ul>
-                            <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 50 else 'rare'} in the dataset.</li>
                         </ul>
-                    </div>
+                        <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 50 else 'rare'} amongst other patients.</li>
+                    </ul>
                 </div>
             </div>
             """
@@ -316,6 +328,64 @@ class PredictExplainer:
                         overflow-y: scroll;
                         padding-right: 15px;
                     }}
+                    .classification-report {{
+                        font-family: Arial, sans-serif;
+                        max-width: 600px;
+                        margin: 20px auto;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        padding: 20px;
+                        background-color: #f9f9f9;
+                    }}
+                    
+                    .report-header h2 {{
+                        margin-top: 0;
+                        font-size: 1.5em;
+                        color: #333;
+                        text-align: center;
+                        border-bottom: 2px solid #3498db;
+                        padding-bottom: 10px;
+                    }}
+                    
+                    .report-details {{
+                        margin: 20px 0;
+                    }}
+                    
+                    .report-details p {{
+                        margin: 8px 0;
+                        font-size: 1em;
+                        color: #555;
+                    }}
+                    
+                    .report-details p strong {{
+                        color: #333;
+                    }}
+                    
+                    .report-analysis {{
+                        margin-top: 20px;
+                    }}
+                    
+                    .report-analysis h3 {{
+                        font-size: 1.2em;
+                        color: #3498db;
+                        margin-bottom: 10px;
+                    }}
+                    
+                    .report-analysis ul {{
+                        list-style-type: disc;
+                        margin: 10px 0 0 20px;
+                        color: #555;
+                    }}
+                    
+                    .report-analysis ul ul {{
+                        list-style-type: circle;
+                        margin-left: 20px;
+                    }}
+                    
+                    .report-analysis li {{
+                        margin: 5px 0;
+                    }}
                 </style>
                 <script>
                     function toggleFeature(id) {{
@@ -334,9 +404,8 @@ class PredictExplainer:
 
                     <!-- Prediction Section -->
                     <div class="prediction">
-                        <div class="prediction-header">Prediction</div>
                         <div class="prediction-content">
-                            <p>{prediction_analysis}</p>
+                            {prediction_analysis}
                         </div>
                     </div>
 
@@ -406,7 +475,7 @@ class PredictExplainer:
             <div class="feature-content" id="{column}_categorical_numbers">
                 The new patient has a value of <span class="feature-value">{input_value}</span>.
                 <div class="feature-category">
-                    {'This value is rare in the dataset.' if input_value not in value_counts.index else f'This value occurs in <span class="feature-value">{value_counts[input_value]:.3f}%</span> of patients.'}
+                    {'This value is rare amongst other patients.' if input_value not in value_counts.index else f'This value occurs in <span class="feature-value">{value_counts[input_value]:.3f}%</span> of patients.'}
                 </div>
                 <div class="feature-list">
                     <strong>All possible categories and their frequencies:</strong>
@@ -429,7 +498,7 @@ class PredictExplainer:
             <div class="feature-content" id="'{column}_categorical_strings'">
                 The new patient has a value of <span class="feature-value">'{input_value}'</span>.
                 <div class="feature-category">
-                    {'This value is rare in the dataset.' if input_value not in value_counts.index else f'This value occurs in <span class="feature-value">{value_counts[input_value]:.3f}%</span> of patients.'}
+                    {'This value is rare among ther patients.' if input_value not in value_counts.index else f'This value occurs in <span class="feature-value">{value_counts[input_value]:.3f}%</span> of patients.'}
                 </div>
             </div>
         """
@@ -444,22 +513,23 @@ class PredictExplainer:
         min_value = df[column].min()
         max_value = df[column].max()
 
+
         input_value = input_value.iloc[0]  # Ensure scalar
         if input_value > mean + std_dev:  # Way above
-            comparison = "way above"
+            comparison = "significantly above"
         elif input_value > mean:  # Slightly above
             comparison = "slightly above"
         elif input_value == mean:  # Equal to mean
             comparison = "equal to"
         elif input_value < mean - std_dev:  # Way below
-            comparison = "way below"
+            comparison = "significantly below"
         else:  # Slightly below
             comparison = "slightly below"
 
         return f"""
             <div class="feature-header" onclick="toggleFeature('{column}_numerical_continuous')">Feature '{column}' - Value: {input_value:.3f}</div>
             <div class="feature-content" id="{column}_numerical_continuous">
-                The new patient has a value of <span class="feature-value">{input_value:.3f}</span>. This value is {comparison} the mean value of <span class="feature-value">{mean:.3f}</span> for the dataset.
+                The new patient has a value of <span class="feature-value">{input_value:.3f}</span>. This value is {comparison} the mean value of <span class="feature-value">{mean:.3f}</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -479,7 +549,7 @@ if __name__ == "__main__":
     with open('medaid1/medaid.pkl', 'rb') as file:
         medaid = pickle.load(file)
 
-    model = medaid.best_models[0]
+    model = medaid.best_models[2]
     pe = PredictExplainer(medaid, model)
 
     # Prepare the input data
