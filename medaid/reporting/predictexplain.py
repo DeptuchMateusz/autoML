@@ -1,5 +1,9 @@
+import os
+
 import pandas as pd
 import pickle
+
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 
 import pandas as pd
@@ -14,6 +18,8 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+
 
 class PredictExplainer:
     def __init__(self, medaid, model):
@@ -143,15 +149,67 @@ class PredictExplainer:
 
         return processed_data
 
+    def generate_shap_viz(self, input_data):
+        import shap  # Install the shap library if not already installed
+        import matplotlib.pyplot as plt
+
+        """
+        Generates SHAP visualizations for the given input data.
+
+        This function creates a force plot for the single prediction, a summary plot for
+        the whole dataset, and a waterfall plot for the explanation of the single prediction.
+        """
+        # Preprocess input data
+        processed_input_data = self.preprocess_input_data(input_data)
+
+        # Check if the model is a tree-based model (DecisionTree or RandomForest)
+        if isinstance(self.model, (shap.TreeExplainer, type)) and (
+                isinstance(self.model, DecisionTreeClassifier) or isinstance(self.model, RandomForestClassifier)
+        ):
+            # Initialize SHAP TreeExplainer for tree-based models
+            explainer = shap.TreeExplainer(self.model)
+        else:
+            # For other types of models, use the standard explainer
+            explainer = shap.Explainer(self.model, self.medaid.X)
+
+        # Compute SHAP values for the dataset
+        shap_values = explainer.shap_values(processed_input_data)
+
+        # Save force plot for single prediction
+        force_plot_path = f"{self.medaid.path}/shap_force_plot.html"
+        force_plot = shap.force_plot(
+            explainer.expected_value[0] if isinstance(self.model, (
+            DecisionTreeClassifier, RandomForestClassifier)) else explainer.expected_value,
+            shap_values[0][0] if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)) else
+            shap_values[0],
+            processed_input_data.iloc[0],
+            matplotlib=False,  # This is fine as you're saving to HTML
+        )
+
+        # Save the force plot as an HTML file
+        shap.save_html(force_plot_path, force_plot)
+
+        # Create shap summary plot
+        shap.summary_plot(shap_values, processed_input_data, show=False)
+        summary_plot_path = f"{self.medaid.path}/shap_summary_plot.png"
+        plt.savefig(summary_plot_path)
+
+        # Return only the force plot path and summary plot path
+        return {
+            'force_plot': force_plot_path,
+            'summary_plot': summary_plot_path
+        }
+
     def predict_target(self, input_data):
         """
         Preprocesses the input data and predicts the target feature using the model.
+        Adds SHAP visualizations for enhanced interpretability.
         """
         # Preprocess the input data first
         processed_input_data = self.preprocess_input_data(input_data)
 
         # Make the prediction
-        # if xgboost enable categorical features
+        # Enable categorical features if using XGBoost
         if self.model.__class__.__name__ == 'XGBClassifier':
             for column in self.medaid.X.columns:
                 if self.medaid.X[column].dtype == 'object':
@@ -161,26 +219,36 @@ class PredictExplainer:
 
         # Get target column name
         target_column = self.medaid.target_column
+
         # Calculate the prediction probability
         prediction_proba = self.model.predict_proba(processed_input_data)[0]
 
         # Perform prediction analysis
         prediction_analysis = self.analyze_prediction(prediction, target_column, prediction_proba)
 
-        return prediction, prediction_analysis
+        # Generate SHAP visualizations
+        force, summary = self.generate_shap_viz(input_data)
+
+        return prediction, prediction_analysis, force, summary
 
     def analyze_prediction(self, prediction, target_column, prediction_proba):
         """
         Analyzes the predicted value of the target feature and compares it to the dataset.
+        Incorporates SHAP feature importance plot in the classification report.
         """
         # Get target data
         df = self.medaid.df_before
-
         target_values = df[target_column]
 
         # Basic comparison with the classes distribution
         value_counts = target_values.value_counts(normalize=True) * 100
 
+        # Generate path to SHAP feature importance plot
+        #find out which medaid# the self.path ends with
+        medaid_number = self.medaid.path.split('/')[-1]
+        shap_plot_path = f"{medaid_number}/shap_feature_importance/{self.model.__class__.__name__}_custom_feature_importance.png"
+        print(shap_plot_path)
+        # Initialize the analysis variable
         if len(value_counts) == 2:  # Binary classification
             analysis = f"""
             <div class="classification-report">
@@ -201,6 +269,11 @@ class PredictExplainer:
                         <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 50 else 'rare'} amongst other patients.</li>
                     </ul>
                 </div>
+                <!--
+                <div class="feature-importance">
+                    <h3>Feature Importance on Whole Dataset:</h3>
+                    <img src="{shap_plot_path}" alt="Feature Importance Plot for the whole dataset" style="max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;">
+                </div> -->
             </div>
             """
         else:  # Multiclass classification
@@ -229,6 +302,10 @@ class PredictExplainer:
                         <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 50 else 'rare'} amongst other patients.</li>
                     </ul>
                 </div>
+                <div class="feature-importance">
+                    <h3>SHAP Feature Importance:</h3>
+                    <img src="{shap_plot_path}" alt="Feature Importance Plot for the whole dataset" style="max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;">
+                </div>
             </div>
             """
 
@@ -252,7 +329,8 @@ class PredictExplainer:
         feature_analysis = self.classify_and_analyze_features(df, input_data)
 
         # Predict and analyze the target
-        prediction, prediction_analysis = self.predict_target(input_data)
+        prediction, prediction_analysis, shap_force, shap_summary = self.predict_target(input_data)
+        medaid_number = self.medaid.path.split('/')[-1]
 
         # Start HTML report
         html_report = f"""
@@ -338,7 +416,7 @@ class PredictExplainer:
                         padding: 20px;
                         background-color: #f9f9f9;
                     }}
-                    
+
                     .report-header h2 {{
                         margin-top: 0;
                         font-size: 1.5em;
@@ -347,44 +425,88 @@ class PredictExplainer:
                         border-bottom: 2px solid #3498db;
                         padding-bottom: 10px;
                     }}
-                    
+
                     .report-details {{
                         margin: 20px 0;
                     }}
-                    
+
                     .report-details p {{
                         margin: 8px 0;
                         font-size: 1em;
                         color: #555;
                     }}
-                    
+
                     .report-details p strong {{
                         color: #333;
                     }}
-                    
+
                     .report-analysis {{
                         margin-top: 20px;
                     }}
-                    
+
                     .report-analysis h3 {{
                         font-size: 1.2em;
                         color: #3498db;
                         margin-bottom: 10px;
                     }}
-                    
+
                     .report-analysis ul {{
                         list-style-type: disc;
                         margin: 10px 0 0 20px;
                         color: #555;
                     }}
-                    
+
                     .report-analysis ul ul {{
                         list-style-type: circle;
                         margin-left: 20px;
                     }}
-                    
+
                     .report-analysis li {{
                         margin: 5px 0;
+                    }}
+
+                    /* SHAP Visualizations Section */
+                    .shap-visualization {{
+                        margin-top: 40px;
+                        background-color: #f4f9fc;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                    }}
+                    .shap-visualization h3 {{
+                        font-size: 1.2em;
+                        color: #003366;
+                        margin-bottom: 10px;
+                    }}
+                    .shap-visualization iframe {{
+                        width: 100%;
+                        height: 350px;  /* Reduced height for Force Plot */
+                        border: none;
+                        border-radius: 8px;
+                    }}
+                    .shap-visualization img {{
+                        display: block;
+                        margin: 0 auto;  /* Center the image */
+                        width: auto;  /* Maintain aspect ratio */
+                        max-width: 80%;  /* Limit width to 80% of the page */
+                        max-height: 400px;  /* Reduced height for Summary Plot */
+                        border-radius: 8px;
+                        margin-top: 20px;
+                    }}
+
+                    .interpretation {{
+                        margin-top: 20px;
+                        font-size: 1em;
+                        color: #555;
+                    }}
+                    .interpretation h4 {{
+                        font-size: 1.1em;
+                        color: #3498db;
+                        margin-bottom: 10px;
+                    }}
+                    .interpretation p {{
+                        margin: 8px 0;
+                        color: #555;
                     }}
                 </style>
                 <script>
@@ -411,6 +533,35 @@ class PredictExplainer:
 
                     <!-- Feature Analysis Section -->
                     {feature_analysis}
+
+                    <!-- SHAP Visualizations Section -->
+                    <div class="shap-visualization">
+                        <h3>SHAP Visualizations for Prediction</h3>
+
+                        <!-- SHAP Force Plot -->
+                        <h4>Force Plot for Single Prediction:</h4>
+                        <iframe src="{medaid_number}/shap_force_plot.html" frameborder="0"></iframe>
+
+                        <!-- Interpretation for Force Plot -->
+                        <div class="interpretation">
+                            <h4>How to Interpret the Force Plot:</h4>
+                            <p>
+                                The force plot shows how each feature in the patient’s data pushes the prediction either towards or away from the predicted class. The length of each arrow indicates the magnitude of the effect of the corresponding feature, while the color shows whether the feature is pushing the prediction in a positive (towards the class) or negative (away from the class) direction. The baseline (middle) represents the average prediction, and the arrows reflect how the features of the individual patient’s data influence that prediction.
+                            </p>
+                        </div>
+
+                        <!-- SHAP Summary Plot -->
+                        <h4>Summary Plot for Whole Dataset:</h4>
+                        <img src="{medaid_number}/shap_summary_plot.png" alt="SHAP Summary Plot">
+
+                        <!-- Interpretation for Summary Plot -->
+                        <div class="interpretation">
+                            <h4>How to Interpret the Summary Plot:</h4>
+                            <p>
+                                The summary plot shows the overall impact of each feature across the entire dataset. Each point represents a SHAP value for an individual prediction, and the features are sorted by their average impact on the model’s output. The color represents the feature value, with red indicating higher values and blue indicating lower values. The spread of each feature’s points gives an indication of the variation in feature impact across all samples in the dataset.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </body>
         </html>
@@ -549,7 +700,8 @@ if __name__ == "__main__":
     with open('medaid1/medaid.pkl', 'rb') as file:
         medaid = pickle.load(file)
 
-    model = medaid.best_models[2]
+    model = medaid.best_models[3]
+    print(model.__class__.__name__)
     pe = PredictExplainer(medaid, model)
 
     # Prepare the input data
