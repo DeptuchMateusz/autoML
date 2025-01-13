@@ -81,7 +81,7 @@
                         padding: 20px;
                         background-color: #f9f9f9;
                     }
-                    
+
                     .report-header h2 {
                         margin-top: 0;
                         font-size: 1.5em;
@@ -90,44 +90,88 @@
                         border-bottom: 2px solid #3498db;
                         padding-bottom: 10px;
                     }
-                    
+
                     .report-details {
                         margin: 20px 0;
                     }
-                    
+
                     .report-details p {
                         margin: 8px 0;
                         font-size: 1em;
                         color: #555;
                     }
-                    
+
                     .report-details p strong {
                         color: #333;
                     }
-                    
+
                     .report-analysis {
                         margin-top: 20px;
                     }
-                    
+
                     .report-analysis h3 {
                         font-size: 1.2em;
                         color: #3498db;
                         margin-bottom: 10px;
                     }
-                    
+
                     .report-analysis ul {
                         list-style-type: disc;
                         margin: 10px 0 0 20px;
                         color: #555;
                     }
-                    
+
                     .report-analysis ul ul {
                         list-style-type: circle;
                         margin-left: 20px;
                     }
-                    
+
                     .report-analysis li {
                         margin: 5px 0;
+                    }
+
+                    /* SHAP Visualizations Section */
+                    .shap-visualization {
+                        margin-top: 40px;
+                        background-color: #f4f9fc;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                    }
+                    .shap-visualization h3 {
+                        font-size: 1.2em;
+                        color: #003366;
+                        margin-bottom: 10px;
+                    }
+                    .shap-visualization iframe {
+                        width: 100%;
+                        height: 350px;  /* Reduced height for Force Plot */
+                        border: none;
+                        border-radius: 8px;
+                    }
+                    .shap-visualization img {
+                        display: block;
+                        margin: 0 auto;  /* Center the image */
+                        width: auto;  /* Maintain aspect ratio */
+                        max-width: 80%;  /* Limit width to 80% of the page */
+                        max-height: 400px;  /* Reduced height for Summary Plot */
+                        border-radius: 8px;
+                        margin-top: 20px;
+                    }
+
+                    .interpretation {
+                        margin-top: 20px;
+                        font-size: 1em;
+                        color: #555;
+                    }
+                    .interpretation h4 {
+                        font-size: 1.1em;
+                        color: #3498db;
+                        margin-bottom: 10px;
+                    }
+                    .interpretation p {
+                        margin: 8px 0;
+                        color: #555;
                     }
                 </style>
                 <script>
@@ -156,8 +200,8 @@
                 <div class="report-details">
                     <p><strong>Target Feature:</strong> Diagnosis</p>
                     <p><strong>Predicted Value:</strong> 0</p>
-                    <p><strong>Prediction Probability:</strong> [0.66789419 0.33210581]</p>
-                    <p><strong>Model Used:</strong> RandomForestClassifier</p>
+                    <p><strong>Prediction Probability:</strong> [1.00000000e+00 8.89229941e-17]</p>
+                    <p><strong>Model Used:</strong> LogisticRegression</p>
                 </div>
                 <div class="report-analysis">
                     <h3>Prediction Analysis (Binary Classification):</h3>
@@ -167,6 +211,11 @@
                         <li>The predicted class of 0 is common amongst other patients.</li>
                     </ul>
                 </div>
+                <!--
+                <div class="feature-importance">
+                    <h3>Feature Importance on Whole Dataset:</h3>
+                    <img src="medaid1/shap_feature_importance/LogisticRegression_custom_feature_importance.png" alt="Feature Importance Plot for the whole dataset" style="max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;">
+                </div> -->
             </div>
             
                         </div>
@@ -496,6 +545,35 @@
                 </div>
             </div>
         </div></div>
+
+                    <!-- SHAP Visualizations Section -->
+                    <div class="shap-visualization">
+                        <h3>SHAP Visualizations for Prediction</h3>
+
+                        <!-- SHAP Force Plot -->
+                        <h4>Force Plot for Single Prediction:</h4>
+                        <iframe src="medaid1/shap_force_plot.html" frameborder="0"></iframe>
+
+                        <!-- Interpretation for Force Plot -->
+                        <div class="interpretation">
+                            <h4>How to Interpret the Force Plot:</h4>
+                            <p>
+                                The force plot shows how each feature in the patient’s data pushes the prediction either towards or away from the predicted class. The length of each arrow indicates the magnitude of the effect of the corresponding feature, while the color shows whether the feature is pushing the prediction in a positive (towards the class) or negative (away from the class) direction. The baseline (middle) represents the average prediction, and the arrows reflect how the features of the individual patient’s data influence that prediction.
+                            </p>
+                        </div>
+
+                        <!-- SHAP Summary Plot -->
+                        <h4>Summary Plot for Whole Dataset:</h4>
+                        <img src="medaid1/shap_summary_plot.png" alt="SHAP Summary Plot">
+
+                        <!-- Interpretation for Summary Plot -->
+                        <div class="interpretation">
+                            <h4>How to Interpret the Summary Plot:</h4>
+                            <p>
+                                The summary plot shows the overall impact of each feature across the entire dataset. Each point represents a SHAP value for an individual prediction, and the features are sorted by their average impact on the model’s output. The color represents the feature value, with red indicating higher values and blue indicating lower values. The spread of each feature’s points gives an indication of the variation in feature impact across all samples in the dataset.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </body>
         </html>
