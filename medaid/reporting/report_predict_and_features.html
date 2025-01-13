@@ -71,6 +71,64 @@
                         overflow-y: scroll;
                         padding-right: 15px;
                     }
+                    .classification-report {
+                        font-family: Arial, sans-serif;
+                        max-width: 600px;
+                        margin: 20px auto;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        padding: 20px;
+                        background-color: #f9f9f9;
+                    }
+                    
+                    .report-header h2 {
+                        margin-top: 0;
+                        font-size: 1.5em;
+                        color: #333;
+                        text-align: center;
+                        border-bottom: 2px solid #3498db;
+                        padding-bottom: 10px;
+                    }
+                    
+                    .report-details {
+                        margin: 20px 0;
+                    }
+                    
+                    .report-details p {
+                        margin: 8px 0;
+                        font-size: 1em;
+                        color: #555;
+                    }
+                    
+                    .report-details p strong {
+                        color: #333;
+                    }
+                    
+                    .report-analysis {
+                        margin-top: 20px;
+                    }
+                    
+                    .report-analysis h3 {
+                        font-size: 1.2em;
+                        color: #3498db;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .report-analysis ul {
+                        list-style-type: disc;
+                        margin: 10px 0 0 20px;
+                        color: #555;
+                    }
+                    
+                    .report-analysis ul ul {
+                        list-style-type: circle;
+                        margin-left: 20px;
+                    }
+                    
+                    .report-analysis li {
+                        margin: 5px 0;
+                    }
                 </style>
                 <script>
                     function toggleFeature(id) {
@@ -89,24 +147,28 @@
 
                     <!-- Prediction Section -->
                     <div class="prediction">
-                        <div class="prediction-header">Prediction</div>
                         <div class="prediction-content">
-                            <p>
-            <div class="feature">
-                <div class="feature-header" onclick="toggleFeature('target') >Target Feature: Diagnosis - Predicted Value: 0</div>
-                <div class="feature-content" id="target">
-                    The predicted value for the target feature is <span>0</span>.
-                    <div class="feature-category">
-                        <strong>Prediction Analysis (Binary Classification):</strong>
-                        <ul>
-                            <li>Class 0 occurs in 64.63% of patients.</li>
-                            <li>Class 1 occurs in 35.37% of patients.</li>
-                            <li>The predicted class of 0 is common in the dataset.</li>
-                        </ul>
-                    </div>
+                            
+            <div class="classification-report">
+                <div class="report-header">
+                    <h2>Classification Report</h2>
+                </div>
+                <div class="report-details">
+                    <p><strong>Target Feature:</strong> Diagnosis</p>
+                    <p><strong>Predicted Value:</strong> 0</p>
+                    <p><strong>Prediction Probability:</strong> [0.66789419 0.33210581]</p>
+                    <p><strong>Model Used:</strong> RandomForestClassifier</p>
+                </div>
+                <div class="report-analysis">
+                    <h3>Prediction Analysis (Binary Classification):</h3>
+                    <ul>
+                        <li>Class 0 occurs in 64.63% of patients.</li>
+                        <li>Class 1 occurs in 35.37% of patients.</li>
+                        <li>The predicted class of 0 is common amongst other patients.</li>
+                    </ul>
                 </div>
             </div>
-            </p>
+            
                         </div>
                     </div>
 
@@ -114,7 +176,7 @@
                     <div class='features-container'><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('Age_numerical_continuous')">Feature 'Age' - Value: 73.000</div>
             <div class="feature-content" id="Age_numerical_continuous">
-                The new patient has a value of <span class="feature-value">73.000</span>. This value is slightly below the mean value of <span class="feature-value">74.909</span> for the dataset.
+                The new patient has a value of <span class="feature-value">73.000</span>. This value is slightly below the mean value of <span class="feature-value">74.909</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -162,7 +224,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('BMI_numerical_continuous')">Feature 'BMI' - Value: 22.928</div>
             <div class="feature-content" id="BMI_numerical_continuous">
-                The new patient has a value of <span class="feature-value">22.928</span>. This value is slightly below the mean value of <span class="feature-value">27.656</span> for the dataset.
+                The new patient has a value of <span class="feature-value">22.928</span>. This value is slightly below the mean value of <span class="feature-value">27.656</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -182,7 +244,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('AlcoholConsumption_numerical_continuous')">Feature 'AlcoholConsumption' - Value: 13.297</div>
             <div class="feature-content" id="AlcoholConsumption_numerical_continuous">
-                The new patient has a value of <span class="feature-value">13.297</span>. This value is slightly above the mean value of <span class="feature-value">10.039</span> for the dataset.
+                The new patient has a value of <span class="feature-value">13.297</span>. This value is slightly above the mean value of <span class="feature-value">10.039</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -196,7 +258,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('PhysicalActivity_numerical_continuous')">Feature 'PhysicalActivity' - Value: 6.327</div>
             <div class="feature-content" id="PhysicalActivity_numerical_continuous">
-                The new patient has a value of <span class="feature-value">6.327</span>. This value is slightly above the mean value of <span class="feature-value">4.920</span> for the dataset.
+                The new patient has a value of <span class="feature-value">6.327</span>. This value is slightly above the mean value of <span class="feature-value">4.920</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -210,7 +272,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('DietQuality_numerical_continuous')">Feature 'DietQuality' - Value: 1.347</div>
             <div class="feature-content" id="DietQuality_numerical_continuous">
-                The new patient has a value of <span class="feature-value">1.347</span>. This value is way below the mean value of <span class="feature-value">4.993</span> for the dataset.
+                The new patient has a value of <span class="feature-value">1.347</span>. This value is significantly below the mean value of <span class="feature-value">4.993</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -224,7 +286,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('SleepQuality_numerical_continuous')">Feature 'SleepQuality' - Value: 9.026</div>
             <div class="feature-content" id="SleepQuality_numerical_continuous">
-                The new patient has a value of <span class="feature-value">9.026</span>. This value is way above the mean value of <span class="feature-value">7.051</span> for the dataset.
+                The new patient has a value of <span class="feature-value">9.026</span>. This value is significantly above the mean value of <span class="feature-value">7.051</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -274,7 +336,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('SystolicBP_numerical_continuous')">Feature 'SystolicBP' - Value: 142.000</div>
             <div class="feature-content" id="SystolicBP_numerical_continuous">
-                The new patient has a value of <span class="feature-value">142.000</span>. This value is slightly above the mean value of <span class="feature-value">134.265</span> for the dataset.
+                The new patient has a value of <span class="feature-value">142.000</span>. This value is slightly above the mean value of <span class="feature-value">134.265</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -288,7 +350,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('DiastolicBP_numerical_continuous')">Feature 'DiastolicBP' - Value: 72.000</div>
             <div class="feature-content" id="DiastolicBP_numerical_continuous">
-                The new patient has a value of <span class="feature-value">72.000</span>. This value is way below the mean value of <span class="feature-value">89.848</span> for the dataset.
+                The new patient has a value of <span class="feature-value">72.000</span>. This value is significantly below the mean value of <span class="feature-value">89.848</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -302,7 +364,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('CholesterolTotal_numerical_continuous')">Feature 'CholesterolTotal' - Value: 242.367</div>
             <div class="feature-content" id="CholesterolTotal_numerical_continuous">
-                The new patient has a value of <span class="feature-value">242.367</span>. This value is slightly above the mean value of <span class="feature-value">225.198</span> for the dataset.
+                The new patient has a value of <span class="feature-value">242.367</span>. This value is slightly above the mean value of <span class="feature-value">225.198</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -316,7 +378,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('CholesterolLDL_numerical_continuous')">Feature 'CholesterolLDL' - Value: 56.151</div>
             <div class="feature-content" id="CholesterolLDL_numerical_continuous">
-                The new patient has a value of <span class="feature-value">56.151</span>. This value is way below the mean value of <span class="feature-value">124.336</span> for the dataset.
+                The new patient has a value of <span class="feature-value">56.151</span>. This value is significantly below the mean value of <span class="feature-value">124.336</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -330,7 +392,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('CholesterolHDL_numerical_continuous')">Feature 'CholesterolHDL' - Value: 33.683</div>
             <div class="feature-content" id="CholesterolHDL_numerical_continuous">
-                The new patient has a value of <span class="feature-value">33.683</span>. This value is way below the mean value of <span class="feature-value">59.464</span> for the dataset.
+                The new patient has a value of <span class="feature-value">33.683</span>. This value is significantly below the mean value of <span class="feature-value">59.464</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -344,7 +406,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('MMSE_numerical_continuous')">Feature 'MMSE' - Value: 21.464</div>
             <div class="feature-content" id="MMSE_numerical_continuous">
-                The new patient has a value of <span class="feature-value">21.464</span>. This value is slightly above the mean value of <span class="feature-value">14.755</span> for the dataset.
+                The new patient has a value of <span class="feature-value">21.464</span>. This value is slightly above the mean value of <span class="feature-value">14.755</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -358,7 +420,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('FunctionalAssessment_numerical_continuous')">Feature 'FunctionalAssessment' - Value: 6.519</div>
             <div class="feature-content" id="FunctionalAssessment_numerical_continuous">
-                The new patient has a value of <span class="feature-value">6.519</span>. This value is slightly above the mean value of <span class="feature-value">5.080</span> for the dataset.
+                The new patient has a value of <span class="feature-value">6.519</span>. This value is slightly above the mean value of <span class="feature-value">5.080</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
@@ -384,7 +446,7 @@
         </div><div class='feature'>
             <div class="feature-header" onclick="toggleFeature('ADL_numerical_continuous')">Feature 'ADL' - Value: 1.726</div>
             <div class="feature-content" id="ADL_numerical_continuous">
-                The new patient has a value of <span class="feature-value">1.726</span>. This value is way below the mean value of <span class="feature-value">4.983</span> for the dataset.
+                The new patient has a value of <span class="feature-value">1.726</span>. This value is significantly below the mean value of <span class="feature-value">4.983</span> for other patients.
                 <div class="feature-category">
                     <strong>Additional details:</strong>
                     <ul>
