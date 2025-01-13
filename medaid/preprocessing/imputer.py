@@ -25,13 +25,22 @@ class Imputer:
 
         Parameters:
         - dataframe (pd.DataFrame): The dataframe to process.
-        -self.t (str): The name of the target column.
+        - self.target_column (str): The name of the target column.
 
         Returns:
         - pd.DataFrame: DataFrame with missing values imputed.
         """
         df_copy = dataframe.copy()
 
+        # Check if target column is categorical, if yes, encode it
+        if df_copy[self.target_column].dtype == 'object' or df_copy[self.target_column].dtype.name == 'category':
+            le = LabelEncoder()
+            df_copy[self.target_column] = le.fit_transform(df_copy[self.target_column])
+            target_is_categorical = True
+            print(f"Zmienna '{self.target_column}' zakodowana na liczby.")
+        else:
+            target_is_categorical = False
+        
         # Filter only numerical columns for correlation calculation
         numerical_columns = df_copy.select_dtypes(include=['number']).columns
 
@@ -123,6 +132,10 @@ class Imputer:
                         "Imputation Method": "Decision Tree",
                         "Correlation": None,  # Correlation doesn't apply to categorical columns
                     }
+
+        # If the target column was categorical, decode it back to its original form
+        if target_is_categorical:
+            df_copy[self.target_column] = le.inverse_transform(df_copy[self.target_column])
 
         return df_copy
 

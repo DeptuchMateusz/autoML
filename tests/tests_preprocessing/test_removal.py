@@ -14,7 +14,8 @@ class TestColumnRemover(unittest.TestCase):
             'duplicate_salary': [50000, 60000, 70000, 80000, 90000],  # Correlated with 'salary', should be removed
         }
         self.df = pd.DataFrame(self.data)
-        self.remover = ColumnRemover(threshold=0.5)
+        self.target_column = 'salary'
+        self.remover = ColumnRemover(threshold=0.5, target_column=self.target_column)
 
     def test_remove_id_columns(self):
         cleaned_df = self.remover.remove(self.df)
