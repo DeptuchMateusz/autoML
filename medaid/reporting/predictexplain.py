@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import pickle
 
+from lime.lime_tabular import LimeTabularExplainer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 
@@ -150,86 +151,56 @@ class PredictExplainer:
         return processed_data
 
     def generate_shap_viz(self, input_data):
-        import shap  # Install the shap library if not already installed
+        import shap  # Ensure the shap library is installed
         import matplotlib.pyplot as plt
 
         """
         Generates SHAP visualizations for the given input data.
 
-        This function creates a force plot for the single prediction, a summary plot for
-        the whole dataset, and a waterfall plot for the explanation of the single prediction.
+        This function uses the SHAP `Explanation` object to create a force plot
+        for a single prediction and a summary plot for the whole dataset. Both are saved as files.
         """
         # Preprocess input data
         processed_input_data = self.preprocess_input_data(input_data)
 
-        # Check if the model is a tree-based model (DecisionTree or RandomForest)
-        if isinstance(self.model, (shap.TreeExplainer, type)) and (
-                isinstance(self.model, DecisionTreeClassifier) or isinstance(self.model, RandomForestClassifier)
-        ):
-            # Initialize SHAP TreeExplainer for tree-based models
+        # Determine the SHAP explainer based on the model type
+        if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
+            # Use TreeExplainer for tree-based models
             explainer = shap.TreeExplainer(self.model)
         else:
-            # For other types of models, use the standard explainer
+            # Use the general Explainer for other models
             explainer = shap.Explainer(self.model, self.medaid.X)
 
-        # Compute SHAP values for the dataset
-        shap_values = explainer.shap_values(processed_input_data)
+        # Generate SHAP explanations (returns a shap.Explanation object)
+        explanation = explainer(processed_input_data)
 
-        # Save force plot for single prediction
+        # Save force plot for a single prediction
         force_plot_path = f"{self.medaid.path}/shap_force_plot.html"
-        force_plot = shap.force_plot(
-            explainer.expected_value[0] if isinstance(self.model, (
-            DecisionTreeClassifier, RandomForestClassifier)) else explainer.expected_value,
-            shap_values[0][0] if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)) else
-            shap_values[0],
-            processed_input_data.iloc[0],
-            matplotlib=False,  # This is fine as you're saving to HTML
+        force_plot = shap.plots.force(
+            explanation[0].base_values,  # Base value for the single prediction
+            explanation[0].values,  # SHAP values for the single prediction
+            explanation[0].data,  # Input data for the single prediction
+            feature_names=explanation.feature_names,  # Names of the features
+            matplotlib=False  # Generate an HTML file
         )
-
-        # Save the force plot as an HTML file
         shap.save_html(force_plot_path, force_plot)
 
-        # Create shap summary plot
-        shap.summary_plot(shap_values, processed_input_data, show=False)
+        # Create SHAP summary plot for the entire dataset
         summary_plot_path = f"{self.medaid.path}/shap_summary_plot.png"
+        shap.summary_plot(
+            explanation.values,  # SHAP values for all samples
+            processed_input_data,  # Input data for all samples
+            feature_names=explanation.feature_names,  # Feature names for labeling
+            show=False
+        )
         plt.savefig(summary_plot_path)
 
-        # Return only the force plot path and summary plot path
+        # Return paths to the saved plots
         return {
             'force_plot': force_plot_path,
             'summary_plot': summary_plot_path
         }
 
-    def predict_target(self, input_data):
-        """
-        Preprocesses the input data and predicts the target feature using the model.
-        Adds SHAP visualizations for enhanced interpretability.
-        """
-        # Preprocess the input data first
-        processed_input_data = self.preprocess_input_data(input_data)
-
-        # Make the prediction
-        # Enable categorical features if using XGBoost
-        if self.model.__class__.__name__ == 'XGBClassifier':
-            for column in self.medaid.X.columns:
-                if self.medaid.X[column].dtype == 'object':
-                    processed_input_data[column] = processed_input_data[column].astype('category')
-
-        prediction = self.model.predict(processed_input_data)[0]  # Assuming single prediction for a single patient
-
-        # Get target column name
-        target_column = self.medaid.target_column
-
-        # Calculate the prediction probability
-        prediction_proba = self.model.predict_proba(processed_input_data)[0]
-
-        # Perform prediction analysis
-        prediction_analysis = self.analyze_prediction(prediction, target_column, prediction_proba)
-
-        # Generate SHAP visualizations
-        force, summary = self.generate_shap_viz(input_data)
-
-        return prediction, prediction_analysis, force, summary
 
     def analyze_prediction(self, prediction, target_column, prediction_proba):
         """
@@ -329,196 +300,208 @@ class PredictExplainer:
         feature_analysis = self.classify_and_analyze_features(df, input_data)
 
         # Predict and analyze the target
-        prediction, prediction_analysis, shap_force, shap_summary = self.predict_target(input_data)
+        prediction, prediction_analysis, shap_force, shap_summary, lime_plot = self.predict_target(input_data)
         medaid_number = self.medaid.path.split('/')[-1]
 
         # Start HTML report
         html_report = f"""
         <html>
             <head>
-                <style>
-                    body {{
-                        font-family: Arial, sans-serif;
-                        background-color: #f4f4f4;
-                        color: #333;
-                    }}
-                    .container {{
-                        width: 80%;
-                        margin: 0 auto;
-                        background-color: white;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-                    }}
+                 <style>
+                   body {{
+                       font-family: Arial, sans-serif;
+                       background-color: #f4f4f4;
+                       color: #333;
+                   }}
+                   .container {{
+                       width: 80%;
+                       margin: 0 auto;
+                       background-color: white;
+                       padding: 20px;
+                       border-radius: 8px;
+                       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                   }}
 
-                    .feature {{
-                        margin-bottom: 20px;
-                    }}
-                    .feature-header {{
-                        background-color: #003366;
-                        color: white;
-                        padding: 10px;
-                        border-radius: 5px;
-                        font-weight: bold;
-                        cursor: pointer;
-                    }}
-                    .feature-content {{
-                        display: none;
-                        background-color: #f9f9f9;
-                        padding: 10px;
-                        border-left: 4px solid #003366;
-                        border-radius: 5px;
-                        margin-top: 10px;
-                    }}
-                    .feature-category {{
-                        margin-top: 10px;
-                    }}
-                    .feature-value {{
-                        font-weight: bold;
-                        color: #003366;
-                    }}
-                    .btn {{
-                        padding: 10px 20px;
-                        background-color: #003366;
-                        color: white;
-                        border: none;
-                        cursor: pointer;
-                    }}
-                    .btn:hover {{
-                        background-color: #00509e;
-                    }}
-                    .prediction {{
-                        margin-top: 30px;
-                        background-color: #E1E9F1;
-                        padding: 20px;
-                        border-radius: 8px;
-                    }}
-                    .prediction-header {{
-                        font-weight: bold;
-                        color: #003366;
-                        margin-bottom: 10px;
-                    }}
-                    .prediction-content {{
-                        color: #333;
-                    }}
-                    .features-container {{
-                        max-height: 500px;
-                        overflow-y: scroll;
-                        padding-right: 15px;
-                    }}
-                    .classification-report {{
-                        font-family: Arial, sans-serif;
-                        max-width: 600px;
-                        margin: 20px auto;
-                        border: 1px solid #ddd;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                        padding: 20px;
-                        background-color: #f9f9f9;
-                    }}
 
-                    .report-header h2 {{
-                        margin-top: 0;
-                        font-size: 1.5em;
-                        color: #333;
-                        text-align: center;
-                        border-bottom: 2px solid #3498db;
-                        padding-bottom: 10px;
-                    }}
+                   .feature {{
+                       margin-bottom: 20px;
+                   }}
+                   .feature-header {{
+                       background-color: #003366;
+                       color: white;
+                       padding: 10px;
+                       border-radius: 5px;
+                       font-weight: bold;
+                       cursor: pointer;
+                   }}
+                   .feature-content {{
+                       display: none;
+                       background-color: #f9f9f9;
+                       padding: 10px;
+                       border-left: 4px solid #003366;
+                       border-radius: 5px;
+                       margin-top: 10px;
+                   }}
+                   .feature-category {{
+                       margin-top: 10px;
+                   }}
+                   .feature-value {{
+                       font-weight: bold;
+                       color: #003366;
+                   }}
+                   .btn {{
+                       padding: 10px 20px;
+                       background-color: #003366;
+                       color: white;
+                       border: none;
+                       cursor: pointer;
+                   }}
+                   .btn:hover {{
+                       background-color: #00509e;
+                   }}
+                   .prediction {{
+                       margin-top: 30px;
+                       background-color: #E1E9F1;
+                       padding: 20px;
+                       border-radius: 8px;
+                   }}
+                   .prediction-header {{
+                       font-weight: bold;
+                       color: #003366;
+                       margin-bottom: 10px;
+                   }}
+                   .prediction-content {{
+                       color: #333;
+                   }}
+                   .features-container {{
+                       max-height: 500px;
+                       overflow-y: scroll;
+                       padding-right: 15px;
+                   }}
+                   .classification-report {{
+                       font-family: Arial, sans-serif;
+                       max-width: 600px;
+                       margin: 20px auto;
+                       border: 1px solid #ddd;
+                       border-radius: 8px;
+                       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                       padding: 20px;
+                       background-color: #f9f9f9;
+                   }}
 
-                    .report-details {{
-                        margin: 20px 0;
-                    }}
 
-                    .report-details p {{
-                        margin: 8px 0;
-                        font-size: 1em;
-                        color: #555;
-                    }}
+                   .report-header h2 {{
+                       margin-top: 0;
+                       font-size: 1.5em;
+                       color: #333;
+                       text-align: center;
+                       border-bottom: 2px solid #3498db;
+                       padding-bottom: 10px;
+                   }}
 
-                    .report-details p strong {{
-                        color: #333;
-                    }}
 
-                    .report-analysis {{
-                        margin-top: 20px;
-                    }}
+                   .report-details {{
+                       margin: 20px 0;
+                   }}
 
-                    .report-analysis h3 {{
-                        font-size: 1.2em;
-                        color: #3498db;
-                        margin-bottom: 10px;
-                    }}
 
-                    .report-analysis ul {{
-                        list-style-type: disc;
-                        margin: 10px 0 0 20px;
-                        color: #555;
-                    }}
+                   .report-details p {{
+                       margin: 8px 0;
+                       font-size: 1em;
+                       color: #555;
+                   }}
 
-                    .report-analysis ul ul {{
-                        list-style-type: circle;
-                        margin-left: 20px;
-                    }}
 
-                    .report-analysis li {{
-                        margin: 5px 0;
-                    }}
+                   .report-details p strong {{
+                       color: #333;
+                   }}
 
-                    /* SHAP Visualizations Section */
-                    .shap-visualization {{
-                        margin-top: 40px;
-                        background-color: #f4f9fc;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-                    }}
-                    .shap-visualization h3 {{
-                        font-size: 1.2em;
-                        color: #003366;
-                        margin-bottom: 10px;
-                    }}
-                    .shap-visualization iframe {{
-                        width: 100%;
-                        height: 350px;  /* Reduced height for Force Plot */
-                        border: none;
-                        border-radius: 8px;
-                    }}
-                    .shap-visualization img {{
-                        display: block;
-                        margin: 0 auto;  /* Center the image */
-                        width: auto;  /* Maintain aspect ratio */
-                        max-width: 80%;  /* Limit width to 80% of the page */
-                        max-height: 400px;  /* Reduced height for Summary Plot */
-                        border-radius: 8px;
-                        margin-top: 20px;
-                    }}
 
-                    .interpretation {{
-                        margin-top: 20px;
-                        font-size: 1em;
-                        color: #555;
-                    }}
-                    .interpretation h4 {{
-                        font-size: 1.1em;
-                        color: #3498db;
-                        margin-bottom: 10px;
-                    }}
-                    .interpretation p {{
-                        margin: 8px 0;
-                        color: #555;
-                    }}
-                </style>
-                <script>
-                    function toggleFeature(id) {{
-                        var content = document.getElementById(id);
-                        if (content.style.display === "none") {{
-                            content.style.display = "block";
-                        }} else {{
-                            content.style.display = "none";
-                        }}
-                    }}
-                </script>
+                   .report-analysis {{
+                       margin-top: 20px;
+                   }}
+
+
+                   .report-analysis h3 {{
+                       font-size: 1.2em;
+                       color: #3498db;
+                       margin-bottom: 10px;
+                   }}
+
+
+                   .report-analysis ul {{
+                       list-style-type: disc;
+                       margin: 10px 0 0 20px;
+                       color: #555;
+                   }}
+
+
+                   .report-analysis ul ul {{
+                       list-style-type: circle;
+                       margin-left: 20px;
+                   }}
+
+
+                   .report-analysis li {{
+                       margin: 5px 0;
+                   }}
+
+
+                   /* SHAP Visualizations Section */
+                   .shap-visualization {{
+                       margin-top: 40px;
+                       background-color: #f4f9fc;
+                       padding: 20px;
+                       border-radius: 8px;
+                       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                   }}
+                   .shap-visualization h3 {{
+                       font-size: 1.2em;
+                       color: #003366;
+                       margin-bottom: 10px;
+                   }}
+                   .shap-visualization iframe {{
+                       width: 100%;
+                       height: 350px;  /* Reduced height for Force Plot */
+                       border: none;
+                       border-radius: 8px;
+                   }}
+                   .shap-visualization img {{
+                       display: block;
+                       margin: 0 auto;  /* Center the image */
+                       width: auto;  /* Maintain aspect ratio */
+                       max-width: 80%;  /* Limit width to 80% of the page */
+                       max-height: 400px;  /* Reduced height for Summary Plot */
+                       border-radius: 8px;
+                       margin-top: 20px;
+                   }}
+
+
+                   .interpretation {{
+                       margin-top: 20px;
+                       font-size: 1em;
+                       color: #555;
+                   }}
+                   .interpretation h4 {{
+                       font-size: 1.1em;
+                       color: #3498db;
+                       margin-bottom: 10px;
+                   }}
+                   .interpretation p {{
+                       margin: 8px 0;
+                       color: #555;
+                   }}
+               </style>
+               <script>
+                   function toggleFeature(id) {{
+                       var content = document.getElementById(id);
+                       if (content.style.display === "none") {{
+                           content.style.display = "block";
+                       }} else {{
+                           content.style.display = "none";
+                       }}
+                   }}
+               </script>
             </head>
             <body>
                 <div class="container">
@@ -534,39 +517,131 @@ class PredictExplainer:
                     <!-- Feature Analysis Section -->
                     {feature_analysis}
 
-                    <!-- SHAP Visualizations Section -->
-                    <div class="shap-visualization">
-                        <h3>SHAP Visualizations for Prediction</h3>
+                    <!-- Visualizations Section -->
+                    <div class="visualizations">
+                        <h3>Model Interpretability Visualizations</h3>
+        """
 
-                        <!-- SHAP Force Plot -->
-                        <h4>Force Plot for Single Prediction:</h4>
-                        <iframe src="{medaid_number}/shap_force_plot.html" frameborder="0"></iframe>
+        # Add SHAP Force Plot if available
+        if shap_force:
+            html_report += f"""
+                <div class="shap-visualization">
+                    <h4>SHAP Force Plot:</h4>
+                    <iframe src="{medaid_number}/shap_force_plot.html" frameborder="0"></iframe>
+                    <!-- Interpretation for Force Plot -->
+                       <div class="interpretation">
+                           <h4>How to Interpret the Force Plot:</h4>
+                           <p>
+                               The force plot shows how each feature in the patient’s data pushes the prediction either towards or away from the predicted class. The length of each arrow indicates the magnitude of the effect of the corresponding feature, while the color shows whether the feature is pushing the prediction in a positive (towards the class) or negative (away from the class) direction. The baseline (middle) represents the average prediction, and the arrows reflect how the features of the individual patient’s data influence that prediction.
+                           </p>
+                       </div>
 
-                        <!-- Interpretation for Force Plot -->
-                        <div class="interpretation">
-                            <h4>How to Interpret the Force Plot:</h4>
-                            <p>
-                                The force plot shows how each feature in the patient’s data pushes the prediction either towards or away from the predicted class. The length of each arrow indicates the magnitude of the effect of the corresponding feature, while the color shows whether the feature is pushing the prediction in a positive (towards the class) or negative (away from the class) direction. The baseline (middle) represents the average prediction, and the arrows reflect how the features of the individual patient’s data influence that prediction.
-                            </p>
-                        </div>
+                </div>
+            """
 
-                        <!-- SHAP Summary Plot -->
-                        <h4>Summary Plot for Whole Dataset:</h4>
-                        <img src="{medaid_number}/shap_summary_plot.png" alt="SHAP Summary Plot">
+        # Add SHAP Summary Plot if available
+        if shap_summary:
+            html_report += f"""
+                <div class="shap-visualization">
+                    <h4>SHAP Summary Plot:</h4>
+                    <img src="{medaid_number}/shap_summary_plot.png" alt="SHAP Summary Plot">
+                    <!-- Interpretation for Summary Plot -->
+                       <div class="interpretation">
+                           <h4>How to Interpret the Summary Plot:</h4>
+                           <p>
+                               The summary plot shows the overall impact of each feature across the entire dataset. Each point represents a SHAP value for an individual prediction, and the features are sorted by their average impact on the model’s output. The color represents the feature value, with red indicating higher values and blue indicating lower values. The spread of each feature’s points gives an indication of the variation in feature impact across all samples in the dataset.
+                           </p>
+                       </div>
 
-                        <!-- Interpretation for Summary Plot -->
-                        <div class="interpretation">
-                            <h4>How to Interpret the Summary Plot:</h4>
-                            <p>
-                                The summary plot shows the overall impact of each feature across the entire dataset. Each point represents a SHAP value for an individual prediction, and the features are sorted by their average impact on the model’s output. The color represents the feature value, with red indicating higher values and blue indicating lower values. The spread of each feature’s points gives an indication of the variation in feature impact across all samples in the dataset.
-                            </p>
-                        </div>
-                    </div>
+                </div>
+                
+            """
+
+        # Add LIME Plot if available
+        if lime_plot:
+            html_report += f"""
+                <div class="lime-visualization">
+                    <h4>LIME Explanation:</h4>
+                    <iframe src="{medaid_number}/lime_explanation.html" frameborder="0" width="100%" height="400px"></iframe>
+                    <!-- Interpretation for LIME Explanation -->
+            <div class="interpretation">
+                <h4>How to Interpret the LIME Explanation:</h4>
+                <p>
+                    The LIME plot provides a local explanation for a specific prediction made by the model. It shows how the individual features of the patient’s data contribute to the model’s prediction. Each feature is assigned a weight that represents its impact on the predicted outcome. Features with higher weights have a more significant influence on the prediction. The plot typically visualizes the contributions of each feature, with the color representing whether the feature is pushing the model's prediction in a positive or negative direction.
+                </p>
+            </div>
+                </div>
+            """
+
+        html_report += """
                 </div>
             </body>
         </html>
         """
         return html_report
+
+    def generate_viz(self, input_data):
+        """
+        Generates visualizations for the given input data using SHAP or LIME.
+        """
+        #preprocess the input data
+        input_data = self.preprocess_input_data(input_data)
+        if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
+            # Use LIME for tree-based models
+            return self.generate_lime_viz(input_data)
+        else:
+            # Use SHAP for other models
+            return self.generate_shap_viz(input_data)
+
+    def generate_lime_viz(self, input_data):
+        """
+        Generates LIME visualizations for the given input data.
+        """
+        explainer = LimeTabularExplainer(
+            training_data=self.medaid.X.values,  # Training data
+            feature_names=self.medaid.X.columns.tolist(),  # Feature names
+            class_names=[str(c) for c in self.model.classes_],  # Class labels
+            mode='classification'  # Classification mode
+        )
+
+        # Generate explanation for the first prediction
+        exp = explainer.explain_instance(
+            data_row=input_data.iloc[0].values,  # Single row of input data
+            predict_fn=self.model.predict_proba  # Prediction function
+        )
+
+        # Save the LIME visualization
+        lime_plot_path = f"{self.medaid.path}/lime_explanation.html"
+        exp.save_to_file(lime_plot_path)
+
+        # Return path to the saved visualization
+        return {'lime_plot': lime_plot_path}
+
+    def predict_target(self, input_data):
+        """
+        Preprocesses the input data and predicts the target feature using the model.
+        Adds SHAP or LIME visualizations for enhanced interpretability.
+        """
+        # Preprocess the input data
+        processed_input_data = self.preprocess_input_data(input_data)
+
+        # Make the prediction
+        prediction = self.model.predict(processed_input_data)[0]
+        prediction_proba = self.model.predict_proba(processed_input_data)[0]
+
+        # Analyze prediction
+        target_column = self.medaid.target_column
+        prediction_analysis = self.analyze_prediction(prediction, target_column, prediction_proba)
+
+        # Generate visualizations (SHAP or LIME)
+        viz = self.generate_viz(input_data)
+
+        # Extract visualization paths based on whether SHAP or LIME was used
+        shap_force = viz.get('force_plot')  # For SHAP Force Plot
+        shap_summary = viz.get('summary_plot')  # For SHAP Summary Plot
+        lime_plot = viz.get('lime_plot')  # For LIME Plot
+
+        return prediction, prediction_analysis, shap_force, shap_summary, lime_plot
 
     def classify_and_analyze_features(self, df, input_data):
         """
@@ -700,7 +775,7 @@ if __name__ == "__main__":
     with open('medaid1/medaid.pkl', 'rb') as file:
         medaid = pickle.load(file)
 
-    model = medaid.best_models[3]
+    model = medaid.best_models[1]
     print(model.__class__.__name__)
     pe = PredictExplainer(medaid, model)
 

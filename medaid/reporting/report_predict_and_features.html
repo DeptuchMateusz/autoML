@@ -1,189 +1,201 @@
 
         <html>
             <head>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        background-color: #f4f4f4;
-                        color: #333;
-                    }
-                    .container {
-                        width: 80%;
-                        margin: 0 auto;
-                        background-color: white;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-                    }
+                 <style>
+                   body {
+                       font-family: Arial, sans-serif;
+                       background-color: #f4f4f4;
+                       color: #333;
+                   }
+                   .container {
+                       width: 80%;
+                       margin: 0 auto;
+                       background-color: white;
+                       padding: 20px;
+                       border-radius: 8px;
+                       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                   }
 
-                    .feature {
-                        margin-bottom: 20px;
-                    }
-                    .feature-header {
-                        background-color: #003366;
-                        color: white;
-                        padding: 10px;
-                        border-radius: 5px;
-                        font-weight: bold;
-                        cursor: pointer;
-                    }
-                    .feature-content {
-                        display: none;
-                        background-color: #f9f9f9;
-                        padding: 10px;
-                        border-left: 4px solid #003366;
-                        border-radius: 5px;
-                        margin-top: 10px;
-                    }
-                    .feature-category {
-                        margin-top: 10px;
-                    }
-                    .feature-value {
-                        font-weight: bold;
-                        color: #003366;
-                    }
-                    .btn {
-                        padding: 10px 20px;
-                        background-color: #003366;
-                        color: white;
-                        border: none;
-                        cursor: pointer;
-                    }
-                    .btn:hover {
-                        background-color: #00509e;
-                    }
-                    .prediction {
-                        margin-top: 30px;
-                        background-color: #E1E9F1;
-                        padding: 20px;
-                        border-radius: 8px;
-                    }
-                    .prediction-header {
-                        font-weight: bold;
-                        color: #003366;
-                        margin-bottom: 10px;
-                    }
-                    .prediction-content {
-                        color: #333;
-                    }
-                    .features-container {
-                        max-height: 500px;
-                        overflow-y: scroll;
-                        padding-right: 15px;
-                    }
-                    .classification-report {
-                        font-family: Arial, sans-serif;
-                        max-width: 600px;
-                        margin: 20px auto;
-                        border: 1px solid #ddd;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                        padding: 20px;
-                        background-color: #f9f9f9;
-                    }
 
-                    .report-header h2 {
-                        margin-top: 0;
-                        font-size: 1.5em;
-                        color: #333;
-                        text-align: center;
-                        border-bottom: 2px solid #3498db;
-                        padding-bottom: 10px;
-                    }
+                   .feature {
+                       margin-bottom: 20px;
+                   }
+                   .feature-header {
+                       background-color: #003366;
+                       color: white;
+                       padding: 10px;
+                       border-radius: 5px;
+                       font-weight: bold;
+                       cursor: pointer;
+                   }
+                   .feature-content {
+                       display: none;
+                       background-color: #f9f9f9;
+                       padding: 10px;
+                       border-left: 4px solid #003366;
+                       border-radius: 5px;
+                       margin-top: 10px;
+                   }
+                   .feature-category {
+                       margin-top: 10px;
+                   }
+                   .feature-value {
+                       font-weight: bold;
+                       color: #003366;
+                   }
+                   .btn {
+                       padding: 10px 20px;
+                       background-color: #003366;
+                       color: white;
+                       border: none;
+                       cursor: pointer;
+                   }
+                   .btn:hover {
+                       background-color: #00509e;
+                   }
+                   .prediction {
+                       margin-top: 30px;
+                       background-color: #E1E9F1;
+                       padding: 20px;
+                       border-radius: 8px;
+                   }
+                   .prediction-header {
+                       font-weight: bold;
+                       color: #003366;
+                       margin-bottom: 10px;
+                   }
+                   .prediction-content {
+                       color: #333;
+                   }
+                   .features-container {
+                       max-height: 500px;
+                       overflow-y: scroll;
+                       padding-right: 15px;
+                   }
+                   .classification-report {
+                       font-family: Arial, sans-serif;
+                       max-width: 600px;
+                       margin: 20px auto;
+                       border: 1px solid #ddd;
+                       border-radius: 8px;
+                       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                       padding: 20px;
+                       background-color: #f9f9f9;
+                   }
 
-                    .report-details {
-                        margin: 20px 0;
-                    }
 
-                    .report-details p {
-                        margin: 8px 0;
-                        font-size: 1em;
-                        color: #555;
-                    }
+                   .report-header h2 {
+                       margin-top: 0;
+                       font-size: 1.5em;
+                       color: #333;
+                       text-align: center;
+                       border-bottom: 2px solid #3498db;
+                       padding-bottom: 10px;
+                   }
 
-                    .report-details p strong {
-                        color: #333;
-                    }
 
-                    .report-analysis {
-                        margin-top: 20px;
-                    }
+                   .report-details {
+                       margin: 20px 0;
+                   }
 
-                    .report-analysis h3 {
-                        font-size: 1.2em;
-                        color: #3498db;
-                        margin-bottom: 10px;
-                    }
 
-                    .report-analysis ul {
-                        list-style-type: disc;
-                        margin: 10px 0 0 20px;
-                        color: #555;
-                    }
+                   .report-details p {
+                       margin: 8px 0;
+                       font-size: 1em;
+                       color: #555;
+                   }
 
-                    .report-analysis ul ul {
-                        list-style-type: circle;
-                        margin-left: 20px;
-                    }
 
-                    .report-analysis li {
-                        margin: 5px 0;
-                    }
+                   .report-details p strong {
+                       color: #333;
+                   }
 
-                    /* SHAP Visualizations Section */
-                    .shap-visualization {
-                        margin-top: 40px;
-                        background-color: #f4f9fc;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-                    }
-                    .shap-visualization h3 {
-                        font-size: 1.2em;
-                        color: #003366;
-                        margin-bottom: 10px;
-                    }
-                    .shap-visualization iframe {
-                        width: 100%;
-                        height: 350px;  /* Reduced height for Force Plot */
-                        border: none;
-                        border-radius: 8px;
-                    }
-                    .shap-visualization img {
-                        display: block;
-                        margin: 0 auto;  /* Center the image */
-                        width: auto;  /* Maintain aspect ratio */
-                        max-width: 80%;  /* Limit width to 80% of the page */
-                        max-height: 400px;  /* Reduced height for Summary Plot */
-                        border-radius: 8px;
-                        margin-top: 20px;
-                    }
 
-                    .interpretation {
-                        margin-top: 20px;
-                        font-size: 1em;
-                        color: #555;
-                    }
-                    .interpretation h4 {
-                        font-size: 1.1em;
-                        color: #3498db;
-                        margin-bottom: 10px;
-                    }
-                    .interpretation p {
-                        margin: 8px 0;
-                        color: #555;
-                    }
-                </style>
-                <script>
-                    function toggleFeature(id) {
-                        var content = document.getElementById(id);
-                        if (content.style.display === "none") {
-                            content.style.display = "block";
-                        } else {
-                            content.style.display = "none";
-                        }
-                    }
-                </script>
+                   .report-analysis {
+                       margin-top: 20px;
+                   }
+
+
+                   .report-analysis h3 {
+                       font-size: 1.2em;
+                       color: #3498db;
+                       margin-bottom: 10px;
+                   }
+
+
+                   .report-analysis ul {
+                       list-style-type: disc;
+                       margin: 10px 0 0 20px;
+                       color: #555;
+                   }
+
+
+                   .report-analysis ul ul {
+                       list-style-type: circle;
+                       margin-left: 20px;
+                   }
+
+
+                   .report-analysis li {
+                       margin: 5px 0;
+                   }
+
+
+                   /* SHAP Visualizations Section */
+                   .shap-visualization {
+                       margin-top: 40px;
+                       background-color: #f4f9fc;
+                       padding: 20px;
+                       border-radius: 8px;
+                       box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                   }
+                   .shap-visualization h3 {
+                       font-size: 1.2em;
+                       color: #003366;
+                       margin-bottom: 10px;
+                   }
+                   .shap-visualization iframe {
+                       width: 100%;
+                       height: 350px;  /* Reduced height for Force Plot */
+                       border: none;
+                       border-radius: 8px;
+                   }
+                   .shap-visualization img {
+                       display: block;
+                       margin: 0 auto;  /* Center the image */
+                       width: auto;  /* Maintain aspect ratio */
+                       max-width: 80%;  /* Limit width to 80% of the page */
+                       max-height: 400px;  /* Reduced height for Summary Plot */
+                       border-radius: 8px;
+                       margin-top: 20px;
+                   }
+
+
+                   .interpretation {
+                       margin-top: 20px;
+                       font-size: 1em;
+                       color: #555;
+                   }
+                   .interpretation h4 {
+                       font-size: 1.1em;
+                       color: #3498db;
+                       margin-bottom: 10px;
+                   }
+                   .interpretation p {
+                       margin: 8px 0;
+                       color: #555;
+                   }
+               </style>
+               <script>
+                   function toggleFeature(id) {
+                       var content = document.getElementById(id);
+                       if (content.style.display === "none") {
+                           content.style.display = "block";
+                       } else {
+                           content.style.display = "none";
+                       }
+                   }
+               </script>
             </head>
             <body>
                 <div class="container">
@@ -200,8 +212,8 @@
                 <div class="report-details">
                     <p><strong>Target Feature:</strong> Diagnosis</p>
                     <p><strong>Predicted Value:</strong> 0</p>
-                    <p><strong>Prediction Probability:</strong> [1.00000000e+00 8.89229941e-17]</p>
-                    <p><strong>Model Used:</strong> LogisticRegression</p>
+                    <p><strong>Prediction Probability:</strong> [0.5 0.5]</p>
+                    <p><strong>Model Used:</strong> DecisionTreeClassifier</p>
                 </div>
                 <div class="report-analysis">
                     <h3>Prediction Analysis (Binary Classification):</h3>
@@ -214,7 +226,7 @@
                 <!--
                 <div class="feature-importance">
                     <h3>Feature Importance on Whole Dataset:</h3>
-                    <img src="medaid1/shap_feature_importance/LogisticRegression_custom_feature_importance.png" alt="Feature Importance Plot for the whole dataset" style="max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;">
+                    <img src="medaid1/shap_feature_importance/DecisionTreeClassifier_custom_feature_importance.png" alt="Feature Importance Plot for the whole dataset" style="max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;">
                 </div> -->
             </div>
             
@@ -546,34 +558,22 @@
             </div>
         </div></div>
 
-                    <!-- SHAP Visualizations Section -->
-                    <div class="shap-visualization">
-                        <h3>SHAP Visualizations for Prediction</h3>
-
-                        <!-- SHAP Force Plot -->
-                        <h4>Force Plot for Single Prediction:</h4>
-                        <iframe src="medaid1/shap_force_plot.html" frameborder="0"></iframe>
-
-                        <!-- Interpretation for Force Plot -->
-                        <div class="interpretation">
-                            <h4>How to Interpret the Force Plot:</h4>
-                            <p>
-                                The force plot shows how each feature in the patient’s data pushes the prediction either towards or away from the predicted class. The length of each arrow indicates the magnitude of the effect of the corresponding feature, while the color shows whether the feature is pushing the prediction in a positive (towards the class) or negative (away from the class) direction. The baseline (middle) represents the average prediction, and the arrows reflect how the features of the individual patient’s data influence that prediction.
-                            </p>
-                        </div>
-
-                        <!-- SHAP Summary Plot -->
-                        <h4>Summary Plot for Whole Dataset:</h4>
-                        <img src="medaid1/shap_summary_plot.png" alt="SHAP Summary Plot">
-
-                        <!-- Interpretation for Summary Plot -->
-                        <div class="interpretation">
-                            <h4>How to Interpret the Summary Plot:</h4>
-                            <p>
-                                The summary plot shows the overall impact of each feature across the entire dataset. Each point represents a SHAP value for an individual prediction, and the features are sorted by their average impact on the model’s output. The color represents the feature value, with red indicating higher values and blue indicating lower values. The spread of each feature’s points gives an indication of the variation in feature impact across all samples in the dataset.
-                            </p>
-                        </div>
-                    </div>
+                    <!-- Visualizations Section -->
+                    <div class="visualizations">
+                        <h3>Model Interpretability Visualizations</h3>
+        
+                <div class="lime-visualization">
+                    <h4>LIME Explanation:</h4>
+                    <iframe src="medaid1/lime_explanation.html" frameborder="0" width="100%" height="400px"></iframe>
+                    <!-- Interpretation for LIME Explanation -->
+            <div class="interpretation">
+                <h4>How to Interpret the LIME Explanation:</h4>
+                <p>
+                    The LIME plot provides a local explanation for a specific prediction made by the model. It shows how the individual features of the patient’s data contribute to the model’s prediction. Each feature is assigned a weight that represents its impact on the predicted outcome. Features with higher weights have a more significant influence on the prediction. The plot typically visualizes the contributions of each feature, with the color representing whether the feature is pushing the model's prediction in a positive or negative direction.
+                </p>
+            </div>
+                </div>
+            
                 </div>
             </body>
         </html>
