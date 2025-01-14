@@ -1,7 +1,11 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 from charset_normalizer import is_binary
 =======
 >>>>>>> ed71fee (male poprawki)
+=======
+from charset_normalizer import is_binary
+>>>>>>> a88fd18 (wtorek)
 from sklearn.metrics import f1_score, precision_score, recall_score, make_scorer, accuracy_score
 
 from medaid.training.search import CustomRandomizedSearchCV, CustomGridSearchCV
@@ -29,6 +33,8 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
     number_of_classes = len(y.unique()) if len(y.unique()) > 2 else 1
 =======
 >>>>>>> ed71fee (male poprawki)
+
+    number_of_classes = len(y.unique()) if len(y.unique()) > 2 else 1
 
     param_grids = {
         "logistic": {
@@ -99,10 +105,14 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
             model_with_params = XGBClassifier(n_jobs=-1)
         elif model == "lightgbm":
 <<<<<<< HEAD
+<<<<<<< HEAD
             model_with_params = LGBMClassifier(n_jobs=-1, objective='binary' if number_of_classes == 1 else 'multiclass', num_class=number_of_classes)
 =======
             model_with_params = LGBMClassifier(n_jobs=-1)
 >>>>>>> ed71fee (male poprawki)
+=======
+            model_with_params = LGBMClassifier(n_jobs=-1, objective='binary' if number_of_classes == 1 else 'multiclass', num_class=number_of_classes)
+>>>>>>> a88fd18 (wtorek)
         if search == "random":
             rs = CustomRandomizedSearchCV(model_with_params, param_grid, n_iter=n_iter, cv=cv,
                                           scoring={'f1': make_scorer(f1_score, average='weighted'),
