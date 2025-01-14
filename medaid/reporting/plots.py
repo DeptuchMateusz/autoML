@@ -212,6 +212,10 @@ def generate_supertree_visualizations(medaid, output_dir="supertree_visualizatio
     return None
 
 def makeplots(aid):
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
     """best_models = aid.best_models
     X_train = aid.X_train
     y_train = aid.y_train
@@ -261,6 +265,12 @@ def makeplots(aid):
     make_confusion_matrix(aid)
     shap_feature_importance_plot(aid)
     generate_supertree_visualizations(aid)
+
+
+    sys.stdout.close()
+    sys.stderr.close()
+    sys.stdout = original_stdout
+    sys.stderr = original_stderr
 
     return None
 
