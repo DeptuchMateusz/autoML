@@ -232,7 +232,6 @@ class Reporting:
 
             # Inside the section for each model
             import os
-            from supertree import SuperTree
 
             for model in self.aid.best_models:
                 # Calculate statistics for medical relevance

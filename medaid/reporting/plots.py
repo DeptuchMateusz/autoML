@@ -191,20 +191,17 @@ def generate_supertree_visualizations(medaid, output_dir="supertree_visualizatio
         print(f"Processing model: {model_name}")
 
         try:
-            # Create a SuperTree instance
             st = SuperTree(
                 model=model,
-                #X = medaid.X_train,
-                #y = medaid.y_train, dziwne że tego nie ma bo w examples jest
+                feature_data = medaid.X_train,
+                target_data = medaid.y_train,
                 feature_names=feature_names,
                 target_names=target_names,
             )
-
-            # Optional: Display the tree interactively in a Jupyter Notebook
-            # st.show_tree()
-
+            print(f"SuperTree visualization for {model_name} created.")
             # Save the HTML visualization
             html_path = os.path.join(output_path, f"{model_name}_tree.html")
+            #save the tree to html
             st.save_html(html_path)
             print(f"Saved SuperTree visualization for {model_name} at: {html_path}")
 
@@ -215,10 +212,6 @@ def generate_supertree_visualizations(medaid, output_dir="supertree_visualizatio
     return None
 
 def makeplots(aid):
-    original_stdout = sys.stdout
-    original_stderr = sys.stderr
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
     """best_models = aid.best_models
     X_train = aid.X_train
     y_train = aid.y_train
@@ -268,12 +261,6 @@ def makeplots(aid):
     make_confusion_matrix(aid)
     shap_feature_importance_plot(aid)
     generate_supertree_visualizations(aid)
-
-
-    sys.stdout.close()
-    sys.stderr.close()
-    sys.stdout = original_stdout
-    sys.stderr = original_stderr
 
     return None
 
