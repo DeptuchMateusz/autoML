@@ -145,7 +145,7 @@ class Reporting:
                     if Reporting.is_nan(value):
                         f.write("<td>NaN</td>")
                     else:
-                        if self.aid.df_before.iloc[:, i].nunique() == 2:
+                        if self.aid.df_before.iloc[:, i].nunique() == 2 and type(value) == int:
                             f.write(f"<td>{int(value)}</td>")
                         #if float display 2 digits after decimal
                         elif type(value)==float:
@@ -176,10 +176,10 @@ class Reporting:
             <section>
                 <h2>Correlation Analysis</h2>""")
 
-            if len(self.aid.X.columns) < 12:
+            if len(self.aid.X.columns) < 33:
                 f.write(f"""
                     <h3>Correlation Matrix</h3>
-                    <img src='../correlation_plots/correlation_matrix.png' style="width: 600px; height: auto;">
+                    <img src='../correlation_plots/correlation_matrix.png' style="width: 80%; height: auto;">
                     <h3>Correlation with {self.aid.y.name}</h3>
                 """)
             for plot_file in os.listdir(os.path.join(self.path, 'correlation_plots')):
@@ -203,26 +203,32 @@ class Reporting:
                         <th>Precision</th>
                         <th>Recall</th>
                         <th>F1</th>
+                        <th>Test Accuracy</th>
+                        <th>Test Precision</th>
+                        <th>Test Recall</th>
+                        <th>Test F1</th>
                     </tr>
             """)
-            for model in self.aid.best_metrics[['model', 'accuracy', 'precision', 'recall', 'f1']].values:
+            for model in self.aid.best_metrics[['model', 'accuracy', 'precision', 'recall', 'f1', 'test_accuracy',
+                                                'test_precision', 'test_recall', 'test_f1']].values:
                 #write only with three decimal places
                 model = [f"{value:.4f}" if isinstance(value, float) else value for value in model]
                 f.write("<tr>" + "".join(f"<td>{value}</td>" for value in model) + "</tr>")
 
             f.write("</table></section>")
-            f.write("""<section>
-                    <h2>Explanation of Medical Metrics</h2>
-                    <ul>
-                        <li><strong>Sensitivity (Recall):</strong> Sensitivity measures how well the model identifies patients who truly have the disease. A higher sensitivity reduces the risk of false negatives, which is crucial in early detection of serious conditions.</li>
-                        <li><strong>Specificity:</strong> Specificity measures how well the model identifies healthy patients. A higher specificity reduces the risk of false positives, preventing unnecessary treatments.</li>
-                        <li><strong>Positive Predictive Value (PPV):</strong> PPV indicates the likelihood that a positive prediction is correct. A high PPV ensures that patients who are diagnosed as sick truly have the condition.</li>
-                        <li><strong>Negative Predictive Value (NPV):</strong> NPV indicates the likelihood that a negative prediction is correct. A high NPV ensures that healthy patients are not incorrectly diagnosed.</li>
-                        <li><strong>False Positive Rate (FPR):</strong> FPR measures the proportion of healthy patients incorrectly identified as having the disease. A high FPR can lead to unnecessary tests and treatments.</li>
-                        <li><strong>False Negative Rate (FNR):</strong> FNR measures the proportion of sick patients who are incorrectly diagnosed as healthy. A high FNR can delay diagnosis and treatment, which may worsen patient outcomes.</li>
-                        <li><strong>ROC-AUC Score:</strong> The ROC-AUC score evaluates the model's ability to distinguish between positive and negative cases across different thresholds. A higher ROC-AUC indicates better discriminatory performance of the model, especially in imbalanced datasets.</li>
-                    </ul>
-                </section>""")
+            if self.aid.y.nunique() == 2:
+                f.write("""<section>
+                        <h2>Explanation of Medical Metrics</h2>
+                        <ul>
+                            <li><strong>Sensitivity (Recall):</strong> Sensitivity measures how well the model identifies patients who truly have the disease. A higher sensitivity reduces the risk of false negatives, which is crucial in early detection of serious conditions.</li>
+                            <li><strong>Specificity:</strong> Specificity measures how well the model identifies healthy patients. A higher specificity reduces the risk of false positives, preventing unnecessary treatments.</li>
+                            <li><strong>Positive Predictive Value (PPV):</strong> PPV indicates the likelihood that a positive prediction is correct. A high PPV ensures that patients who are diagnosed as sick truly have the condition.</li>
+                            <li><strong>Negative Predictive Value (NPV):</strong> NPV indicates the likelihood that a negative prediction is correct. A high NPV ensures that healthy patients are not incorrectly diagnosed.</li>
+                            <li><strong>False Positive Rate (FPR):</strong> FPR measures the proportion of healthy patients incorrectly identified as having the disease. A high FPR can lead to unnecessary tests and treatments.</li>
+                            <li><strong>False Negative Rate (FNR):</strong> FNR measures the proportion of sick patients who are incorrectly diagnosed as healthy. A high FNR can delay diagnosis and treatment, which may worsen patient outcomes.</li>
+                            <li><strong>ROC-AUC Score:</strong> The ROC-AUC score evaluates the model's ability to distinguish between positive and negative cases across different thresholds. A higher ROC-AUC indicates better discriminatory performance of the model, especially in imbalanced datasets.</li>
+                        </ul>
+                    </section>""")
 
             # Inside the section for each model
             import os
@@ -232,21 +238,24 @@ class Reporting:
                 # Calculate statistics for medical relevance
                 y_pred = model.predict(self.aid.X_test)
                 cm = confusion_matrix(self.aid.y_test, y_pred)
-                tn, fp, fn, tp = cm.ravel()
-                sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0  # Recall
-                specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
-                ppv = tp / (tp + fp) if (tp + fp) > 0 else 0  # Precision
-                npv = tn / (tn + fn) if (tn + fn) > 0 else 0
-                fpr = fp / (fp + tn) if (fp + tn) > 0 else 0
-                fnr = fn / (fn + tp) if (fn + tp) > 0 else 0
-                y_proba = model.predict_proba(self.aid.X_test)[:, 1]  # Compute probabilities for positive class
-                roc_auc = roc_auc_score(self.aid.y_test, y_proba)
+                if self.aid.y.nunique() == 2:
+                    tn, fp, fn, tp = cm.ravel()
+                    sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0  # Recall
+                    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+                    ppv = tp / (tp + fp) if (tp + fp) > 0 else 0  # Precision
+                    npv = tn / (tn + fn) if (tn + fn) > 0 else 0
+                    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0
+                    fnr = fn / (fn + tp) if (fn + tp) > 0 else 0
+                    y_proba = model.predict_proba(self.aid.X_test)[:, 1]  # Compute probabilities for positive class
+                    roc_auc = roc_auc_score(self.aid.y_test, y_proba)
 
                 # Write model statistics section
                 f.write(f"""
                 <section>
                     <h2>{model.__class__.__name__}</h2>
-                    <h3>Model Performance Metrics</h3>
+                    """)
+                if self.aid.y.nunique() == 2:
+                   f.write(f"""<h3>Model Performance Metrics</h3>
                     <ul>
                         <li><strong>Sensitivity (Recall):</strong> {sensitivity:.2f}</li>
                         <li><strong>Specificity:</strong> {specificity:.2f}</li>
@@ -256,6 +265,8 @@ class Reporting:
                         <li><strong>False Negative Rate (FNR):</strong> {fnr:.2f}</li>
                         <li><strong>ROC-AUC Score:</strong> {roc_auc:.2f}</li>
                     </ul>
+                """)
+                f.write(f"""
                     <div class="image-row">
                         <div>
                             <h3>Confusion Matrix</h3>
@@ -286,7 +297,7 @@ class Reporting:
 
 
 if __name__ == "__main__":
-    from medaid.training.medaid import medaid
+    from medaid.training.medaid import MedAId
     import os
     import pickle
     with open('medaid1/medaid.pkl', 'rb') as file:

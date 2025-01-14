@@ -217,8 +217,7 @@ class PredictExplainer:
         # Generate path to SHAP feature importance plot
         #find out which medaid# the self.path ends with
         medaid_number = self.medaid.path.split('/')[-1]
-        shap_plot_path = f"{medaid_number}/shap_feature_importance/{self.model.__class__.__name__}_custom_feature_importance.png"
-        print(shap_plot_path)
+        shap_plot_path = f"shap_feature_importance/{self.model.__class__.__name__}_custom_feature_importance.png"
         # Initialize the analysis variable
         if len(value_counts) == 2:  # Binary classification
             analysis = f"""
@@ -471,7 +470,6 @@ class PredictExplainer:
                        margin: 0 auto;  /* Center the image */
                        width: auto;  /* Maintain aspect ratio */
                        max-width: 80%;  /* Limit width to 80% of the page */
-                       max-height: 400px;  /* Reduced height for Summary Plot */
                        border-radius: 8px;
                        margin-top: 20px;
                    }}
@@ -527,7 +525,7 @@ class PredictExplainer:
             html_report += f"""
                 <div class="shap-visualization">
                     <h4>SHAP Force Plot:</h4>
-                    <iframe src="{medaid_number}/shap_force_plot.html" frameborder="0"></iframe>
+                    <iframe src="shap_force_plot.html" frameborder="0"></iframe>
                     <!-- Interpretation for Force Plot -->
                        <div class="interpretation">
                            <h4>How to Interpret the Force Plot:</h4>
@@ -544,7 +542,7 @@ class PredictExplainer:
             html_report += f"""
                 <div class="shap-visualization">
                     <h4>SHAP Summary Plot:</h4>
-                    <img src="{medaid_number}/shap_summary_plot.png" alt="SHAP Summary Plot">
+                    <img src="shap_summary_plot.png" alt="SHAP Summary Plot">
                     <!-- Interpretation for Summary Plot -->
                        <div class="interpretation">
                            <h4>How to Interpret the Summary Plot:</h4>
@@ -562,7 +560,7 @@ class PredictExplainer:
             html_report += f"""
                 <div class="lime-visualization">
                     <h4>LIME Explanation:</h4>
-                    <iframe src="{medaid_number}/lime_explanation.html" frameborder="0" width="100%" height="400px"></iframe>
+                    <iframe src="lime_explanation.html" frameborder="0" width="100%" height="400px"></iframe>
                     <!-- Interpretation for LIME Explanation -->
             <div class="interpretation">
                 <h4>How to Interpret the LIME Explanation:</h4>
@@ -663,7 +661,7 @@ class PredictExplainer:
 
                 if unique_values == 2:  # Binary feature (usually encoded as 0 and 1)
                     feature_content = self._analyze_binary(df, column, input_data[column])
-                elif 2 < unique_values < 15 and df[column].dtype in ['int64', 'float64']:  # Categorical numbers
+                elif 2 < unique_values < 10 and df[column].dtype in ['int64', 'float64']:  # Categorical numbers
                     feature_content = self._analyze_categorical_numbers(df, column, input_data[column])
                 elif df[column].dtype in ['int64', 'float64']:  # Numerical continuous (e.g., age, BMI)
                     feature_content = self._analyze_numerical_continuous(df, column, input_data[column])
@@ -721,7 +719,7 @@ class PredictExplainer:
 
         return f"""
             <div class="feature-header" onclick="toggleFeature('{column}_categorical_strings')">Feature '{column}' - Value: '{input_value}'</div>
-            <div class="feature-content" id="'{column}_categorical_strings'">
+            <div class="feature-content" id="{column}_categorical_strings">
                 The new patient has a value of <span class="feature-value">'{input_value}'</span>.
                 <div class="feature-category">
                     {'This value is rare among ther patients.' if input_value not in value_counts.index else f'This value occurs in <span class="feature-value">{value_counts[input_value]:.3f}%</span> of patients.'}
@@ -733,6 +731,7 @@ class PredictExplainer:
         """
         Generates HTML for a continuous numerical feature with collapsible content.
         """
+
         mean = df[column].mean()
         median = df[column].median()
         std_dev = df[column].std()

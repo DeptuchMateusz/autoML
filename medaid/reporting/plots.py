@@ -54,8 +54,8 @@ def correlation_plot(aid):
 
     corr = X.corr()
     #plot the correlation matrix the scale should be from -1 to 1
-    plt.figure()
-    sns.heatmap(corr, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
+    plt.figure(figsize=(20, 20))
+    sns.heatmap(corr, annot=True, cmap='coolwarm', vmin=-1, vmax=1, fmt='.2f', linewidths=0.5)
     plt.title('Correlation matrix')
     plt.tight_layout()
     plt.savefig(f"{path}/correlation_plots/correlation_matrix.png")
@@ -72,6 +72,7 @@ def correlation_plot(aid):
     return None
 
 def make_confusion_matrix(aid):
+
     #create a folder for the plots
     path = aid.path
     X_test = aid.X_test
@@ -89,7 +90,9 @@ def make_confusion_matrix(aid):
         plt.savefig(f"{path}/confusion_matrix/{model.__class__.__name__}_confusion_matrix.png")
         plt.clf()
 
+
     return None
+
 
 def shap_feature_importance_plot(aid):
     import shap
@@ -115,7 +118,7 @@ def shap_feature_importance_plot(aid):
             feature_importance = pd.DataFrame({
                 'Feature': X.columns,
                 'Importance': importance_values
-            }).sort_values(by='Importance', ascending=False)
+            }).sort_values(by='Importance', ascending=False).head(10)
 
             # Plot manually
             feature_importance.plot(kind='bar', x='Feature', y='Importance', legend=False)
@@ -145,7 +148,7 @@ def shap_feature_importance_plot(aid):
         feature_importance = pd.DataFrame({
             'Feature': X.columns,
             'Importance': importance_values
-        }).sort_values(by='Importance', ascending=False)
+        }).sort_values(by='Importance', ascending=False).head(10)
 
         # Plot manually
         feature_importance.plot(kind='bar', x='Feature', y='Importance', legend=False)
@@ -212,6 +215,10 @@ def generate_supertree_visualizations(medaid, output_dir="supertree_visualizatio
     return None
 
 def makeplots(aid):
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
     """best_models = aid.best_models
     X_train = aid.X_train
     y_train = aid.y_train
@@ -254,19 +261,27 @@ def makeplots(aid):
     sys.stdout =original_stdout
     sys.stderr = original_stderr """
 
+    plt.ioff()
+
     distribution_plots(aid)
     correlation_plot(aid)
     make_confusion_matrix(aid)
     shap_feature_importance_plot(aid)
     generate_supertree_visualizations(aid)
 
+
+    sys.stdout.close()
+    sys.stderr.close()
+    sys.stdout = original_stdout
+    sys.stderr = original_stderr
+
     return None
 
 
 
 if __name__ == "__main__": #main was created for testing purposes
-    from medaid.training.medaid import medaid
-    medaid = medaid(dataset_path='../../data/binary/alzheimers_disease_data.csv', target_column='Diagnosis', metric="recall", search="random", n_iter=3)
+    from medaid.training.medaid import MedAId
+    medaid = MedAId(dataset_path='../../data/binary/alzheimers_disease_data.csv', target_column='Diagnosis', metric="recall", search="random", n_iter=3)
     print(medaid.path)
     medaid.train()
     print("finished_training")

@@ -8,11 +8,12 @@ from sklearn.model_selection import train_test_split
 from medaid.training.train import train
 from medaid.reporting.plots import makeplots
 from medaid.reporting.reporting import Reporting
+from medaid.reporting.predictexplain import PredictExplainer
 import pickle
 import sys
 import os
 
-class medaid:
+class MedAId:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
     allowed_metrics = [ "accuracy", "f1", "recall", "precision"] #TODO ktore metryki ?
     def __init__(self
@@ -118,7 +119,7 @@ class medaid:
             raise ValueError(f"File not found at {self.dataset_path}. Please make sure the file exists.")
         if self.dataset_path.endswith(".csv"):
             return pd.read_csv(self.dataset_path, sep=None, engine='python')
-        if self.dataset_path.endswith(".xlsx"):
+        if self.dataset_path.endswith(".xlsx") or self.dataset_path.endswith(".xls"):
             return pd.read_excel(self.dataset_path)
 
     def preprocessing(self, df):
@@ -127,6 +128,8 @@ class medaid:
 
     def train(self):
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+
         df = self.preprocessing(self.df_before)
         self.X = df.drop(columns=[self.target_column])
         self.y = df[self.target_column]
@@ -136,7 +139,18 @@ class medaid:
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
+
+        original_stdout = sys.stdout
+        original_stderr = sys.stderr
+        sys.stdout = open(os.devnull, 'w')
+        sys.stderr = open(os.devnull, 'w')
+
         makeplots(self) #TODO: odkomentować linijkę jesli juz bedzie dzialac
+
+        sys.stdout.close()
+        sys.stderr.close()
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
 
     def predict(self, X):
         if self.best_models is None:
@@ -157,3 +171,14 @@ class medaid:
         with open(f"{self.path}/medaid.pkl", 'wb') as f:
             pickle.dump(self, f)
 
+    def predict_explain(self, input_data = None, model= None):
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        if not model:
+            model = self.best_models[0]
+        if not input_data:
+            input_data = self.df_before.head(1).drop(columns=[self.target_column])
+        pe = PredictExplainer(self, model)
+        df = self.df_before.drop(columns=[self.target_column])
+        html_report = pe.generate_html_report(df, input_data)
+        with open(f"{self.path}/prediction_report.html", 'w') as f:
+            f.write(html_report)
