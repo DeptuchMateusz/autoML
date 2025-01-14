@@ -37,7 +37,6 @@ class Imputer:
             le = LabelEncoder()
             df_copy[self.target_column] = le.fit_transform(df_copy[self.target_column])
             target_is_categorical = True
-            print(f"Zmienna '{self.target_column}' zakodowana na liczby.")
         else:
             target_is_categorical = False
         

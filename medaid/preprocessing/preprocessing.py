@@ -39,30 +39,34 @@ class Preprocessing:
 
         if not isinstance(dataframe, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame.")
+
+        # 1. Remove rows with missing target values
+        if self.target_column in dataframe.columns:
+            dataframe = dataframe.dropna(subset=[self.target_column])
         
-        # 1. Handle numeric format
+        # 2. Handle numeric format
         dataframe = self.numeric_format_handler.handle_numeric_format(dataframe)
 
-        # 2. Remove text columns
+        # 3. Remove text columns
         dataframe = self.text_column_remover.remove(dataframe)
         text_column_removal_info = self.text_column_remover.get_removal_info()
 
-        # 3. Impute missing values
+        # 4. Impute missing values
         dataframe = self.imputation.impute_missing_values(dataframe)
         imputation_info = self.imputation.get_imputation_info()
 
-        # 4. Encode categorical variables
+        # 5. Encode categorical variables
         dataframe = self.encoder.encode(dataframe)
         encoding_info = self.encoder.get_encoding_info()
 
-        # 5. Scale numerical features
+        # 6. Scale numerical features
         dataframe = self.scaler.scale(dataframe)
         scaling_info = self.scaler.get_scaling_info()
-
         # Save the column info to CSV
         self.save_column_info(text_column_removal_info, imputation_info, encoding_info, scaling_info)
 
         return dataframe
+
 
     def get_column_info(self):
         """
