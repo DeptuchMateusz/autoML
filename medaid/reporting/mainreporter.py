@@ -1,6 +1,5 @@
 #here will be a class for reporting
 import math
-from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, roc_auc_score
 from sklearn.tree import DecisionTreeClassifier
