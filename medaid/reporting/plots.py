@@ -8,7 +8,6 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-plt.
 
 def distribution_plots(aid):
         #create a folder for the plots
