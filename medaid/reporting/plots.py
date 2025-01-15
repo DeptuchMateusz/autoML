@@ -8,6 +8,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+plt.
 
 def distribution_plots(aid):
         #create a folder for the plots
@@ -158,8 +159,10 @@ def generate_supertree_visualizations(medaid, output_dir="supertree_visualizatio
 
     # Feature and target names
     try:
-        feature_names = medaid.X_train.columns.tolist()  # Feature names from training data
+        feature_names = feature_names=medaid.X_train.columns.tolist()  # Feature names from training data
+        print(feature_names)
         target_names = [str(label) for label in medaid.y_train.unique()]  # Target names from training data
+        print(target_names)
     except AttributeError as e:
         print(f"Error extracting feature or target names: {e}")
         return
@@ -172,15 +175,17 @@ def generate_supertree_visualizations(medaid, output_dir="supertree_visualizatio
         try:
             st = SuperTree(
                 model=model,
-                feature_data = medaid.X_train,
-                target_data = medaid.y_train,
+                feature_data = medaid.X_train.reset_index(drop=True),
+                target_data = medaid.y_train.reset_index(drop=True),
                 feature_names=feature_names,
                 target_names=target_names,
             )
+            st.show_tree()
             print(f"SuperTree visualization for {model_name} created.")
             # Save the HTML visualization
             html_path = os.path.join(output_path, f"{model_name}_tree.html")
             #save the tree to html
+            # st.save_html(html_path)
             st.save_html(html_path)
             print(f"Saved SuperTree visualization for {model_name} at: {html_path}")
 
