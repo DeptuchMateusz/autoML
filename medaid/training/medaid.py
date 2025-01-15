@@ -26,6 +26,7 @@ class MedAId:
                  , cv = 3
                  , n_iter = 20
                  , test_size = 0.2
+                , n_jobs = 1
                  ):
 
         self.dataset_path = dataset_path
@@ -94,6 +95,7 @@ class MedAId:
         self.X_test = None
         self.y_train = None
         self.y_test = None
+        self.n_jobs = n_jobs
 
 
     def __repr__(self):
@@ -135,7 +137,9 @@ class MedAId:
         self.y = df[self.target_column]
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=self.test_size, random_state=42)
 
-        best_models, best_models_scores, best_metrics= train(self.X_train, self.y_train,self.X_test, self.y_test, self.models, self.metric, self.path, self.search, self.cv, self.n_iter)
+        best_models, best_models_scores, best_metrics= train(self.X_train, self.y_train,self.X_test, self.y_test,
+                                                             self.models, self.metric, self.path, self.search,
+                                                             self.cv, self.n_iter, self.n_jobs)
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics

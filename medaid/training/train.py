@@ -21,7 +21,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 
-def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
+def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter, n_jobs):
     warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
     number_of_classes = len(y.unique()) if len(y.unique()) > 2 else 1
@@ -47,7 +47,6 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
             'max_depth': [3, 5, 8, 11],
             'min_samples_split': [2, 4, 6, 8],
             'min_samples_leaf': [1, 3, 5],
-            # 'n_jobs': [-1]
         },
         "xgboost": {
             'verbosity': [0],
@@ -61,7 +60,6 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
             'reg_alpha': [0, 0.1, 0.5, 1, 10],
             'reg_lambda': [0, 0.1, 0.5, 1, 10],
             'gamma': [0, 0.1, 0.5, 1, 10],
-            # 'n_jobs': [-1]
         },
         "lightgbm": {
         'verbosity': [-1],
@@ -86,15 +84,15 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
     for model in models:
         param_grid = param_grids[model]
         if model == "logistic":
-            model_with_params = LogisticRegression(n_jobs=-1, max_iter=10000)
+            model_with_params = LogisticRegression(n_jobs=n_jobs, max_iter=10000)
         elif model == "tree":
             model_with_params = DecisionTreeClassifier()
         elif model == "random_forest":
-            model_with_params = RandomForestClassifier(n_jobs=-1)
+            model_with_params = RandomForestClassifier(n_jobs=n_jobs)
         elif model == "xgboost":
-            model_with_params = XGBClassifier(n_jobs=-1)
+            model_with_params = XGBClassifier(n_jobs=n_jobs)
         elif model == "lightgbm":
-            model_with_params = LGBMClassifier(n_jobs=-1, objective='binary' if number_of_classes == 1 else 'multiclass', num_class=number_of_classes)
+            model_with_params = LGBMClassifier(n_jobs=n_jobs, objective='binary' if number_of_classes == 1 else 'multiclass', num_class=number_of_classes)
         if search == "random":
             rs = CustomRandomizedSearchCV(model_with_params, param_grid, n_iter=n_iter, cv=cv,
                                           scoring={'f1': make_scorer(f1_score, average='weighted'),
@@ -102,7 +100,7 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter):
                                                    'precision': make_scorer(precision_score, average='weighted', zero_division=0),
                                                    'recall': make_scorer(recall_score, average='weighted')},
                                           refit = metric, name=model,
-                                          n_jobs=-1)
+                                          n_jobs=n_jobs)
         else:
             rs = CustomGridSearchCV(model_with_params, param_grid,  cv=cv,
                                           scoring={'f1': make_scorer(f1_score, average='weighted'),
