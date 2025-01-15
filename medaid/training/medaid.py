@@ -7,7 +7,7 @@ from medaid.preprocessing.preprocessing import Preprocessing
 from sklearn.model_selection import train_test_split
 from medaid.training.train import train
 from medaid.reporting.plots import makeplots
-from medaid.reporting.reporting import Reporting
+from medaid.reporting.mainreporter import MainReporter
 from medaid.reporting.predictexplain import PredictExplainer
 import pickle
 import sys
@@ -165,7 +165,7 @@ class MedAId:
         return self.best_metrics
 
     def report(self):
-        Reporting(self, self.path).generate_report()
+        MainReporter(self, self.path).generate_report()
 
     def save(self):
         with open(f"{self.path}/medaid.pkl", 'wb') as f:
