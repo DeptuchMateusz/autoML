@@ -24,7 +24,6 @@ def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter, n_jobs
 
 
 
-
     best_models = []
     best_models_scores = []
     metrics_list = []
