@@ -1,25 +1,13 @@
-import os
-
-import pandas as pd
-import pickle
-
 from lime.lime_tabular import LimeTabularExplainer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
-
-import pandas as pd
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder
-from sklearn.impute import SimpleImputer
-from sklearn.model_selection import train_test_split
-import numpy as np
-
 import pandas as pd
 import pickle
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import train_test_split
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
+import shap
+import matplotlib.pyplot as plt
 
 
 class PredictExplainer:
@@ -34,7 +22,6 @@ class PredictExplainer:
         self.medaid = medaid
         self.model = model
         self.preprocessing_details = pd.read_csv(self.medaid.path + '/results/preprocessing_details.csv')
-
         # Create dictionaries for encoders, scalers, and imputers
         self.encoders = {}
         self.scalers = {}
@@ -59,7 +46,6 @@ class PredictExplainer:
                 encoding_method = row["Encoding Method"]
                 if encoding_method == "One-Hot Encoding":
                     # One-Hot encoding using pandas get_dummies
-                    # For input_data, apply get_dummies and align columns
                     processed_data_encoded = pd.get_dummies(processed_data, columns=[column_name], drop_first=False)
                     # Ensure that columns in the input data match with the training data
                     processed_data_encoded = processed_data_encoded.reindex(columns=self.medaid.X.columns, fill_value=0)
@@ -150,57 +136,15 @@ class PredictExplainer:
 
         return processed_data
 
-    def generate_shap_viz(self, input_data):
-        import shap  # Ensure the shap library is installed
-        import matplotlib.pyplot as plt
-
+    def _format_value(self, value):
         """
-        Generates SHAP visualizations for the given input data.
-
-        This function uses the SHAP `Explanation` object to create a force plot
-        for a single prediction and a summary plot for the whole dataset. Both are saved as files.
+        Helper function to format values as integers or floating-point numbers with 3 decimal places.
         """
-        # Preprocess input data
-        processed_input_data = self.preprocess_input_data(input_data)
-
-        # Determine the SHAP explainer based on the model type
-        if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
-            # Use TreeExplainer for tree-based models
-            explainer = shap.TreeExplainer(self.model)
-        else:
-            # Use the general Explainer for other models
-            explainer = shap.Explainer(self.model, self.medaid.X)
-
-        # Generate SHAP explanations (returns a shap.Explanation object)
-        explanation = explainer(processed_input_data)
-
-        # Save force plot for a single prediction
-        force_plot_path = f"{self.medaid.path}/shap_force_plot.html"
-        force_plot = shap.plots.force(
-            explanation[0].base_values,  # Base value for the single prediction
-            explanation[0].values,  # SHAP values for the single prediction
-            explanation[0].data,  # Input data for the single prediction
-            feature_names=explanation.feature_names,  # Names of the features
-            matplotlib=False  # Generate an HTML file
-        )
-        shap.save_html(force_plot_path, force_plot)
-
-        # Create SHAP summary plot for the entire dataset
-        summary_plot_path = f"{self.medaid.path}/shap_summary_plot.png"
-        shap.summary_plot(
-            explanation.values,  # SHAP values for all samples
-            processed_input_data,  # Input data for all samples
-            feature_names=explanation.feature_names,  # Feature names for labeling
-            show=False
-        )
-        plt.savefig(summary_plot_path)
-
-        # Return paths to the saved plots
-        return {
-            'force_plot': force_plot_path,
-            'summary_plot': summary_plot_path
-        }
-
+        if isinstance(value, float):
+            return f"{value:.3f}"
+        elif isinstance(value, int):
+            return f"{value}"
+        return value
 
     def analyze_prediction(self, prediction, target_column, prediction_proba):
         """
@@ -215,8 +159,6 @@ class PredictExplainer:
         value_counts = target_values.value_counts(normalize=True) * 100
 
         # Generate path to SHAP feature importance plot
-        #find out which medaid# the self.path ends with
-        medaid_number = self.medaid.path.split('/')[-1]
         shap_plot_path = f"shap_feature_importance/{self.model.__class__.__name__}_custom_feature_importance.png"
         # Initialize the analysis variable
         if len(value_counts) == 2:  # Binary classification
@@ -281,16 +223,6 @@ class PredictExplainer:
 
         return analysis
 
-    def _format_value(self, value):
-        """
-        Helper function to format values as integers or floating-point numbers with 3 decimal places.
-        """
-        if isinstance(value, float):
-            return f"{value:.3f}"
-        elif isinstance(value, int):
-            return f"{value}"
-        return value
-
     def generate_html_report(self, df, input_data):
         """
         Generates an HTML report that compares the input data with the dataset.
@@ -300,7 +232,6 @@ class PredictExplainer:
 
         # Predict and analyze the target
         prediction, prediction_analysis, shap_force, shap_summary, lime_plot = self.predict_target(input_data)
-        medaid_number = self.medaid.path.split('/')[-1]
 
         # Start HTML report
         html_report = f"""
@@ -582,7 +513,6 @@ class PredictExplainer:
         """
         Generates visualizations for the given input data using SHAP or LIME.
         """
-        #preprocess the input data
         input_data = self.preprocess_input_data(input_data)
         if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
             # Use LIME for tree-based models
@@ -590,6 +520,52 @@ class PredictExplainer:
         else:
             # Use SHAP for other models
             return self.generate_shap_viz(input_data)
+
+    def generate_shap_viz(self, input_data):
+        """
+        Generates SHAP visualizations for the given input data.
+
+        This function uses the SHAP `Explanation` object to create a force plot
+        for a single prediction and a summary plot for the whole dataset. Both are saved as files.
+        """
+        # Preprocess input data
+        processed_input_data = self.preprocess_input_data(input_data)
+
+        # Determine the SHAP explainer based on the model type
+        if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
+            explainer = shap.TreeExplainer(self.model)
+        else:
+            explainer = shap.Explainer(self.model, self.medaid.X)
+
+        # Generate SHAP explanations (returns a shap.Explanation object)
+        explanation = explainer(processed_input_data)
+
+        # Save force plot for a single prediction
+        force_plot_path = f"{self.medaid.path}/shap_force_plot.html"
+        force_plot = shap.plots.force(
+            explanation[0].base_values,
+            explanation[0].values,
+            explanation[0].data,
+            feature_names=explanation.feature_names,
+            matplotlib=False
+        )
+        shap.save_html(force_plot_path, force_plot)
+
+        # Create SHAP summary plot for the entire dataset
+        summary_plot_path = f"{self.medaid.path}/shap_summary_plot.png"
+        shap.summary_plot(
+            explanation.values,  # SHAP values for all samples
+            processed_input_data,  # Input data for all samples
+            feature_names=explanation.feature_names,  # Feature names for labeling
+            show=False
+        )
+        plt.savefig(summary_plot_path)
+
+        # Return paths to the saved plots
+        return {
+            'force_plot': force_plot_path,
+            'summary_plot': summary_plot_path
+        }
 
     def generate_lime_viz(self, input_data):
         """
@@ -608,11 +584,9 @@ class PredictExplainer:
             predict_fn=self.model.predict_proba  # Prediction function
         )
 
-        # Save the LIME visualization
         lime_plot_path = f"{self.medaid.path}/lime_explanation.html"
         exp.save_to_file(lime_plot_path)
 
-        # Return path to the saved visualization
         return {'lime_plot': lime_plot_path}
 
     def predict_target(self, input_data):
@@ -623,11 +597,9 @@ class PredictExplainer:
         # Preprocess the input data
         processed_input_data = self.preprocess_input_data(input_data)
 
-        # Make the prediction
+        # Make and analyze the prediction
         prediction = self.model.predict(processed_input_data)[0]
         prediction_proba = self.model.predict_proba(processed_input_data)[0]
-
-        # Analyze prediction
         target_column = self.medaid.target_column
         prediction_analysis = self.analyze_prediction(prediction, target_column, prediction_proba)
 
@@ -649,9 +621,7 @@ class PredictExplainer:
         feature_analysis = ""  # Holds the HTML for all features
 
         for column in df.columns:
-            # Initialize the content for this specific feature
             feature_content = ""
-
             # Check if the column is categorical (i.e., contains strings)
             if df[column].dtype == 'object':
                 feature_content = self._analyze_categorical_strings(df, column, input_data[column])
@@ -666,10 +636,8 @@ class PredictExplainer:
                 elif df[column].dtype in ['int64', 'float64']:  # Numerical continuous (e.g., age, BMI)
                     feature_content = self._analyze_numerical_continuous(df, column, input_data[column])
 
-            # Add the individual feature analysis wrapped in a <div class="feature"> tag
             feature_analysis += f"<div class='feature'>{feature_content}</div>"
 
-        # Only wrap the entire features inside one .features-container
         return f"<div class='features-container'>{feature_analysis}</div>"
 
     def _analyze_binary(self, df, column, input_value):
@@ -740,15 +708,15 @@ class PredictExplainer:
 
 
         input_value = input_value.iloc[0]  # Ensure scalar
-        if input_value > mean + std_dev:  # Way above
+        if input_value > mean + std_dev:
             comparison = "significantly above"
-        elif input_value > mean:  # Slightly above
+        elif input_value > mean:
             comparison = "slightly above"
-        elif input_value == mean:  # Equal to mean
+        elif input_value == mean:
             comparison = "equal to"
-        elif input_value < mean - std_dev:  # Way below
+        elif input_value < mean - std_dev:
             comparison = "significantly below"
-        else:  # Slightly below
+        else:
             comparison = "slightly below"
 
         return f"""
@@ -767,9 +735,8 @@ class PredictExplainer:
             </div>
         """
 
-
-# Example Usage
-if __name__ == "__main__":
+"""
+if __name__ == "__main__": #main stworzony do celów testowych
     # Load the medaid object
     with open('medaid1/medaid.pkl', 'rb') as file:
         medaid = pickle.load(file)
@@ -785,4 +752,4 @@ if __name__ == "__main__":
     # Generate the HTML report
     html_report = pe.generate_html_report(df, input_data)
     with open('report_predict_and_features.html', 'w') as f:
-        f.write(html_report)
+        f.write(html_report) """

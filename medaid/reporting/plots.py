@@ -1,20 +1,13 @@
-import time
-
-import numpy as np
-from IPython.core.pylabtools import figsize
 from sklearn.metrics import confusion_matrix
-from sklearn.tree import plot_tree
-import matplotlib.pyplot as plt
-from sklearn import tree
-import graphviz
-import dtreeviz
-import os
-import pandas as pd
 import warnings
-import sys
-
+from supertree import SuperTree
 warnings.filterwarnings("ignore", category=UserWarning)
 import seaborn as sns
+import shap
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 def distribution_plots(aid):
         #create a folder for the plots
@@ -68,11 +61,9 @@ def correlation_plot(aid):
         plt.title(f'{col} correlation with y')
         plt.savefig(f"{path}/correlation_plots/{col}_correlation.png")
         plt.clf()
-
     return None
 
 def make_confusion_matrix(aid):
-
     #create a folder for the plots
     path = aid.path
     X_test = aid.X_test
@@ -89,18 +80,10 @@ def make_confusion_matrix(aid):
         plt.title(f'{model.__class__.__name__} confusion matrix')
         plt.savefig(f"{path}/confusion_matrix/{model.__class__.__name__}_confusion_matrix.png")
         plt.clf()
-
-
     return None
 
 
 def shap_feature_importance_plot(aid):
-    import shap
-    import os
-    import numpy as np
-    import pandas as pd
-    import matplotlib.pyplot as plt
-
     # Create a folder for the plots
     path = aid.path
     # Use a subset of the data
@@ -159,16 +142,12 @@ def shap_feature_importance_plot(aid):
     return None
 
 def generate_supertree_visualizations(medaid, output_dir="supertree_visualizations"):
-    from supertree import SuperTree
-    import os
 
     """
     Generate and save SuperTree visualizations for models in the Medaid object.
-
     Parameters:
     - medaid: The Medaid object containing best models, training data, and metadata.
     - output_dir: Directory where visualizations will be saved (default: "supertree_visualizations").
-
     Output:
     - Saves HTML visualizations for each model in the specified directory.
     """
@@ -212,50 +191,7 @@ def generate_supertree_visualizations(medaid, output_dir="supertree_visualizatio
     return None
 
 def makeplots(aid):
-    """best_models = aid.best_models
-    X_train = aid.X_train
-    y_train = aid.y_train
-    path = aid.path
-    original_stdout = sys.stdout
-    original_stderr = sys.stderr
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
-
-    if not os.path.exists(f"{path}/plots"): #TODO: fix the convergence plots
-        os.makedirs(f"{path}/plots")
-
-    for model in best_models:
-        if model.__class__.__name__ == "DecisionTreeClassifier":
-            viz = dtreeviz.model(model, X_train, y_train,
-                                 target_name="target",
-                                 feature_names=X_train.columns)
-            viz.view().save(f"{path}/plots/tree.svg")
-            #save to png
-            plot_tree(model, filled=True)
-            plt.savefig(f"{path}/plots/tree.png")
-
-    for file in os.listdir(f"{path}/results/models"):
-        if file.endswith(".csv"):
-            df = pd.read_csv(f"{path}/results/models/{file}")
-            print(df)
-            plt.plot(df['f1'])
-            plt.plot(df['accuracy'])
-            plt.plot(df['precision'])
-            plt.plot(df['recall'])
-            plt.title(f'{file[:-4]} model')
-            plt.ylabel('score')
-            plt.xlabel('iteration')
-            plt.legend(['f1', 'accuracy', 'precision', 'recall'], loc='upper left')
-            plt.savefig(f"{path}/plots/{file}_convergence.png")
-            plt.clf()
-
-    sys.stdout.close()
-    sys.stderr.close()
-    sys.stdout =original_stdout
-    sys.stderr = original_stderr """
-
-    plt.ioff()
-
+    ' This function generates all the plots for the medaid object'
     distribution_plots(aid)
     correlation_plot(aid)
     make_confusion_matrix(aid)
@@ -265,7 +201,7 @@ def makeplots(aid):
     return None
 
 
-
+"""
 if __name__ == "__main__": #main was created for testing purposes
     from medaid.training.medaid import MedAId
     medaid = MedAId(dataset_path='../../data/binary/alzheimers_disease_data.csv', target_column='Diagnosis', metric="recall", search="random", n_iter=3)
@@ -274,6 +210,6 @@ if __name__ == "__main__": #main was created for testing purposes
     print("finished_training")
     makeplots(medaid)
     medaid.save()
-
+"""
 
 
