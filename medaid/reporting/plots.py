@@ -8,6 +8,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+plt.
 
 def distribution_plots(aid):
         #create a folder for the plots
@@ -179,6 +180,7 @@ def generate_supertree_visualizations(medaid, output_dir="supertree_visualizatio
                 feature_names=feature_names,
                 target_names=target_names,
             )
+            st.show_tree()
             print(f"SuperTree visualization for {model_name} created.")
             # Save the HTML visualization
             html_path = os.path.join(output_path, f"{model_name}_tree.html")
