@@ -12,6 +12,7 @@ from medaid.reporting.predictexplain import PredictExplainer
 import pickle
 import sys
 import os
+import numpy as np
 
 class MedAId:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
@@ -24,8 +25,10 @@ class MedAId:
                  , path = None
                  , search  = 'random'
                  , cv = 3
-                 , n_iter = 20
+                 , n_iter = 30
                  , test_size = 0.2
+                 , n_jobs = 1
+                 , param_grids = None
                  ):
 
         self.dataset_path = dataset_path
@@ -94,14 +97,71 @@ class MedAId:
         self.X_test = None
         self.y_train = None
         self.y_test = None
+        self.n_jobs = n_jobs
+
+        if param_grids:
+            self.param_grids = param_grids
+        else:
+            self.param_grids = {
+                "logistic": {
+                    'C': list(np.logspace(-3, 3, 20)),  # 20 values from 1e-3 to 1e3
+                    'penalty': ['l2'],
+                    'solver': [
+                        'saga',
+                        'lbfgs',
+                        'newton-cg'
+                    ]
+                },
+                "tree": {
+                    'max_depth': [3, 4, 5, 7, 9, 11, 13, 15],
+                    'min_samples_split': [2, 4, 6, 8, 10],
+                    'min_samples_leaf': [1, 2, 3, 4, 5]
+                },
+                "random_forest": {
+                    'n_estimators': [50, 100, 200, 300, 400, 500],
+                    'max_depth': [None, 3, 5, 8, 11, 15, 20],
+                    'min_samples_split': [2, 3, 4, 6, 8, 10],
+                    'min_samples_leaf': [1, 2, 3, 5, 7, 10],
+                    'max_features': ['sqrt', 'log2'],
+                    'bootstrap': [True, False],
+                },
+
+                "xgboost": {
+                    'verbosity': [0],
+                    'n_estimators': [50, 100, 200, 300, 400, 500],
+                    'max_depth': [3, 5, 7, 9, 11, 13, 15],
+                    'learning_rate': [0.01, 0.05, 0.1, 0.3, 0.5],
+                    'subsample': [0.5, 0.7, 0.8, 1],
+                    'colsample_bytree': [0.5, 0.75, 1],
+                    'colsample_bylevel': [0.5, 0.75, 1],
+                    'reg_alpha': [0, 0.01, 0.1, 0.5, 1, 10],
+                    'reg_lambda': [0, 0.01, 0.1, 0.5, 1, 10],
+                    'gamma': [0, 0.01, 0.1, 0.5, 1],
+                    'min_child_weight': [1, 3, 5, 7, 10],
+                    'scale_pos_weight': [1, 10, 50, 100],
+                    'tree_method': ['auto', 'exact', 'approx', 'hist']
+                },
+
+                "lightgbm": {
+                    'verbosity': [-1],
+                    'learning_rate': [0.005, 0.01, 0.05, 0.1],
+                    'n_estimators': [50, 100, 200, 300],
+                    'num_leaves': [6, 8, 12, 16, 24, 32],
+                    'boosting_type': ['gbdt', 'dart', 'goss'],
+                    'max_bin': [255, 510, 1023],
+                    'random_state': [500],
+                    'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9],
+                    'subsample': [0.7, 0.75, 0.8, 0.9],
+                    'reg_alpha': [0, 0.5, 1, 1.2, 2, 5],
+                    'reg_lambda': [0, 0.5, 1, 1.2, 1.4, 2, 5],
+                }
+            }
 
 
     def __repr__(self):
-        # TODO: trzeba jakos ladnie zaprezentowac i guess - techniczna wizualizacja
         return f"medaid(X, y, models={self.models}, metric={self.metric}, path={self.path}, search={self.search}, cv={self.cv}, n_iter={self.n_iter})"
 
     def __str__(self):
-        # TODO trzeba jakos ladnie zaprezentowac i guess - ladna wizualizacja
         str = "medaid object\n"
         str+=f"metric: {self.metric}\n"
         if self.best_models is not None:
@@ -135,7 +195,9 @@ class MedAId:
         self.y = df[self.target_column]
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=self.test_size, random_state=42)
 
-        best_models, best_models_scores, best_metrics= train(self.X_train, self.y_train,self.X_test, self.y_test, self.models, self.metric, self.path, self.search, self.cv, self.n_iter)
+        best_models, best_models_scores, best_metrics= train(self.X_train, self.y_train,self.X_test, self.y_test,
+                                                             self.models, self.metric, self.path, self.search,
+                                                             self.cv, self.n_iter, self.n_jobs, self.param_grids)
         self.best_models = best_models
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
@@ -155,11 +217,14 @@ class MedAId:
     def predict(self, X):
         if self.best_models is None:
             raise ValueError("You need to train the model first")
-        if type(X) is not pd.DataFrame:
+        if type(X) is not pd.DataFrame or type(X) is not pd.Series:
             raise ValueError("X must be a pandas DataFrame")
         if len(X.columns) != len(self.X.columns):
             raise ValueError("X must have the same columns as the training data")
-        return self.best_models[0].predict(X)
+        prediction = self.best_models[0].predict(X)
+        #TODO decode
+
+        return prediction
 
     def models_ranking(self):
         return self.best_metrics
