@@ -1,4 +1,4 @@
-from medaid.training.medaid import MedAId
+from medaid.medaid import MedAId
 
 
 medaid = MedAId(dataset_path='../../data/binary/cardio_train.csv', target_column='cardio', metric="recall", search="random", n_iter=2)
