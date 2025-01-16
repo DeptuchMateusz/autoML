@@ -8,7 +8,7 @@ from medaid.preprocessing.numeric_format_handler import NumericCommaHandler
 import os
 
 class Preprocessing:
-    def __init__(self, target_column, path):
+    def __init__(self, target_column, path, imputer_lr_correlation_threshold=0.8, imputer_rf_correlation_threshold=0.2, removal_threshold=0.2, removal_correlation_threshold=0.9):
         """
         Initialize the preprocessing pipeline.
 
@@ -16,15 +16,19 @@ class Preprocessing:
         - target_column (str): The name of the target column that will not be preprocessed.
         - output_file (str): The name of the output CSV file where details will be saved.
         """
+        self.imputer_lr_correlation_threshold = imputer_lr_correlation_threshold
+        self.imputer_rf_correlation_threshold = imputer_rf_correlation_threshold
+        self.removal_threshold = removal_threshold
+        self.removal_correlation_threshold = removal_correlation_threshold
         self.target_column = target_column
         self.numeric_format_handler = NumericCommaHandler()
-        self.text_column_remover = ColumnRemover(self.target_column)
+        self.column_remover = ColumnRemover(self.target_column, self.removal_threshold, self.removal_correlation_threshold)
         self.encoder = Encoder(self.target_column)
         self.scaler = Scaler(self.target_column)
-        self.imputation = Imputer(self.target_column)
+        self.imputation = Imputer(self.target_column, self.imputer_lr_correlation_threshold, self.imputer_rf_correlation_threshold)
         self.path = path + "/results/preprocessing_details.csv"
         self.preprocessing_info = PreprocessingCsv(self.path)
-        self.columns_info = []  # List to store details of the preprocessing steps
+        self.columns_info = []  
 
     def preprocess(self, dataframe):
         """
@@ -44,8 +48,8 @@ class Preprocessing:
         dataframe = self.numeric_format_handler.handle_numeric_format(dataframe)
 
         # 2. Remove text columns
-        dataframe = self.text_column_remover.remove(dataframe)
-        text_column_removal_info = self.text_column_remover.get_removal_info()
+        dataframe = self.column_remover.remove(dataframe)
+        text_column_removal_info = self.column_remover.get_removal_info()
 
         # 3. Impute missing values
         dataframe = self.imputation.impute_missing_values(dataframe)

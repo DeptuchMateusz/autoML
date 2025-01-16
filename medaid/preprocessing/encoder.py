@@ -16,7 +16,7 @@ class Encoder:
         self.encoding_info = {}
         self.target_column = target_column
         self.label_encoder = LabelEncoder()
-        self.label_encoding_mapping = None  # Stores mapping for target column encoding
+        self.label_encoding_mapping = None  
 
     def is_categorical(self, column):
         """
@@ -31,7 +31,6 @@ class Encoder:
         if not isinstance(column, pd.Series):
             raise ValueError("Input must be a pandas Series.")
 
-        # Check for 'category' dtype or 'object' dtype (typically text data)
         return column.dtype.name in ['category', 'object']
 
     def encode(self, dataframe):
@@ -51,29 +50,29 @@ class Encoder:
 
         # Check if the target column needs label encoding
         if self.is_categorical(dataframe[self.target_column]):
+            unique_values = dataframe[self.target_column].nunique()
             processed_df[self.target_column] = self.label_encoder.fit_transform(dataframe[self.target_column])
             self.label_encoding_mapping = dict(zip(self.label_encoder.classes_, self.label_encoder.transform(self.label_encoder.classes_)))
             self.encoding_info[self.target_column] = {
                 "Type": "Target Categorical",
                 "Encoded": True,
                 "Encoding Method": "Label Encoding",
+                "Unique Values": unique_values,
                 "Mapping": self.label_encoding_mapping
             }
 
-        # Find categorical columns excluding the target column
         categorical_columns = [
             col for col in dataframe.columns 
             if self.is_categorical(dataframe[col]) and col != self.target_column
         ]
 
-        # One-hot encode categorical columns
         for col in categorical_columns:
             unique_values = dataframe[col].nunique()
             self.encoding_info[col] = {
                 "Type": "Categorical",
                 "Encoded": True,
+                "Encoding Method": "One-Hot Encoding",
                 "Unique Values": unique_values,
-                "Encoding Method": "One-Hot Encoding"
             }
 
         if categorical_columns:

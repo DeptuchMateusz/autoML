@@ -34,10 +34,9 @@ class Imputer:
 
         # Check if target column is categorical, if yes, encode it
         if df_copy[self.target_column].dtype == 'object' or df_copy[self.target_column].dtype.name == 'category':
-            le = LabelEncoder()
-            df_copy[self.target_column] = le.fit_transform(df_copy[self.target_column])
+            le_target = LabelEncoder()
+            df_copy[self.target_column] = le_target.fit_transform(df_copy[self.target_column])
             target_is_categorical = True
-            print(f"Variable '{self.target_column}' encoded to numbers.")
         else:
             target_is_categorical = False
         
@@ -135,7 +134,7 @@ class Imputer:
 
         # If the target column was categorical, decode it back to its original form
         if target_is_categorical:
-            df_copy[self.target_column] = le.inverse_transform(df_copy[self.target_column])
+            df_copy[self.target_column] = le_target.inverse_transform(df_copy[self.target_column])
 
         return df_copy
 
