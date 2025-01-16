@@ -18,6 +18,33 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter, n_jobs, param_grids):
+    """
+    This function performs hyperparameter tuning and evaluation CustomRandomizedSearchCV or CustomGridSearchCV.
+    It evaluates models based on cross-validation and test datasets, ranks them by performance,
+    and returns the best models along with their scores and detailed metrics.
+
+    Args:
+        models (list): A list of model names (e.g., ["logistic", "tree", "random_forest"]) to evaluate.
+        param_grids (dict): A dictionary of hyperparameter grids, where keys are model names, and values are parameter grids.
+        X (pd.DataFrame): Training feature set.
+        y (pd.Series): Training target labels.
+        X_test (pd.DataFrame): Test feature set.
+        y_test (pd.Series): Test target labels.
+        path (str): Directory path to save model results as CSV files.
+        metric (str): Primary metric to optimize during hyperparameter tuning (e.g., "f1", "accuracy").
+        n_jobs (int): Number of parallel jobs to run during search and model training.
+        cv (int): Number of cross-validation folds.
+        search (str): Type of search to use ("random" for Randomized Search, "grid" for Grid Search).
+        n_iter (int): Number of iterations for Randomized Search (ignored if using Grid Search).
+
+    Returns:
+        tuple:
+            - best_models (list): List of the best estimators for each model based on the chosen metric.
+            - best_models_scores (list): List of best scores corresponding to the best models.
+            - metrics_df (pd.DataFrame): A DataFrame containing detailed metrics for all models,
+                                         sorted by their best cross-validation scores.
+    """
+
     warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
     number_of_classes = len(y.unique()) if len(y.unique()) > 2 else 1
