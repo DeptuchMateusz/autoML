@@ -21,7 +21,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 
-def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter, n_jobs):
+def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter, n_jobs, param_grids):
     warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
     number_of_classes = len(y.unique()) if len(y.unique()) > 2 else 1
