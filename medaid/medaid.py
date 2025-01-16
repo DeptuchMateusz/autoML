@@ -17,6 +17,62 @@ import numpy as np
 import time
 
 class MedAId:
+    """
+    The MedAId class automates preprocessing, hyperparameter tuning, training, and evaluation of machine learning models.
+    It supports multiple algorithms, generates metrics, visualizations, and explanations, and enables easy model management.
+
+    Usage:
+    create an instance of MedAId and call the train() method to train the models. Then use the predict() method to make predictions.
+    for a detailed report, call the report() method. The save() method saves the instance as a pickle file. If you want to explain a prediction, use the predict_explain() method.
+
+    Parameters:
+        dataset_path (str): Path to the dataset (CSV or Excel file).
+        target_column (str): Name of the target column for prediction.
+        models (list, optional): List of model names to train. Defaults to all allowed models.
+        metric (str, optional): Metric to optimize during training. Defaults to "f1".
+        path (str, optional): Path to save results. Defaults to the current working directory.
+        search (str, optional): Type of hyperparameter search ("random" or "grid"). Defaults to "random".
+        cv (int, optional): Number of cross-validation folds. Defaults to 3.
+        n_iter (int, optional): Number of iterations for random search. Defaults to 30.
+        test_size (float, optional): Proportion of data used for testing. Defaults to 0.2.
+        n_jobs (int, optional): Number of parallel jobs. Defaults to -1.
+        param_grids (dict, optional): Dictionary of hyperparameter grids for each model. Defaults to predefined grids.
+        imputer_lr_correlation_threshold (float, optional): Threshold for logistic regression imputer. Defaults to 0.8.
+        imputer_rf_correlation_threshold (float, optional): Threshold for random forest imputer. Defaults to 0.2.
+        removal_threshold (float, optional): Threshold for feature removal. Defaults to 0.2.
+        removal_correlation_threshold (float, optional): Correlation threshold for feature removal. Defaults to 0.9.
+
+    Attributes:
+        allowed_models (list): List of allowed model names.
+        allowed_metrics (list): List of allowed metrics.
+        path (str): Directory path for saving results.
+        models (list): Models to be trained.
+        metric (str): Optimization metric.
+        best_models (list): List of best trained models.
+        best_models_scores (list): Scores of the best models.
+        best_metrics (pd.DataFrame): Metrics for all models.
+        X, y: Preprocessed features and labels.
+        X_train, X_test, y_train, y_test: Split training and testing datasets.
+        preprocess (Preprocessing): Preprocessing utility instance.
+
+    Methods:
+        read_data(): Loads the dataset from the specified path.
+        preprocessing(): Applies preprocessing to the dataset.
+        split_and_validate_data(test_size, max_attempts): Splits the data, ensuring all classes are present in training.
+        train():
+            - Performs preprocessing of the dataset.
+            - Splits the data into training and testing sets with stratification, ensuring all classes are present in the training data.
+            - Trains multiple machine learning models using hyperparameter tuning (random search or grid search).
+            - Evaluates models using specified metrics and cross-validation.
+            - Saves the results of training (e.g., metrics, best models, scores) to CSV files.
+            - Generates visualizations and plots to summarize training and model performance.
+        predict(X, model_id=0): Makes predictions using the specified model.
+        models_ranking(): Returns a DataFrame ranking all trained models by performance.
+        report(): Generates a comprehensive training report.
+        save(): Saves the MedAId instance as a pickle file.
+        predict_explain(input_data=None, model=None): Generates a detailed explanation for model predictions.
+    """
+
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
     allowed_metrics = [ "accuracy", "f1", "recall", "precision"] #TODO ktore metryki ?
     def __init__(self
@@ -121,7 +177,7 @@ class MedAId:
         else:
             self.param_grids = {
                 "logistic": {
-                    'C': list(np.logspace(-3, 3, 20)),  # 20 values from 1e-3 to 1e3
+                    'C': list(np.logspace(-3, 3, 20)),
                     'penalty': ['l2'],
                     'solver': [
                         'saga',
