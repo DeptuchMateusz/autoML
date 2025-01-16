@@ -284,7 +284,7 @@ class MainReporter:
                             <iframe src="../supertree_visualizations/{model.__class__.__name__}_tree.html" 
                                     style="width:100%; height:400px; border:none;"></iframe>
                             """)
-                        f.write("</section>")
+                f.write("</section>")
 
             # Close HTML
             f.write("</body></html>")
