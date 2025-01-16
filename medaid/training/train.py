@@ -18,6 +18,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # TODO: siatki parametrów
 <<<<<<< HEAD
 =======
@@ -30,6 +31,8 @@ from sklearn.exceptions import ConvergenceWarning
 =======
 >>>>>>> 7b30f35 (param_grids)
 >>>>>>> ee476d6 (param_grids)
+=======
+>>>>>>> b4564d0 (preprocessing - final touches, getting rid of figsize message & some cleaning)
 def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter, n_jobs, param_grids):
     warnings.filterwarnings("ignore", category=ConvergenceWarning)
 

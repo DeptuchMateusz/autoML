@@ -27,8 +27,12 @@ class MedAId:
                  , cv = 3
                  , n_iter = 30
                  , test_size = 0.2
-                 , n_jobs = 1
+                 , n_jobs = -1
                  , param_grids = None
+                 , imputer_lr_correlation_threshold=0.8
+                 , imputer_rf_correlation_threshold=0.2
+                 , removal_threshold=0.2
+                 , removal_correlation_threshold=0.9
                  ):
 
         self.dataset_path = dataset_path
@@ -78,7 +82,13 @@ class MedAId:
             raise ValueError("search must be either 'random' or 'grid'")
         self.search = search
 
-        self.preprocess = Preprocessing(target_column, self.path)
+        self.imputer_lr_correlation_threshold = imputer_lr_correlation_threshold
+        self.imputer_rf_correlation_threshold = imputer_rf_correlation_threshold
+        self.removal_threshold = removal_threshold
+        self.removal_correlation_threshold = removal_correlation_threshold        
+        self.preprocess = Preprocessing(self.target_column, self.path, self.imputer_lr_correlation_threshold,
+                                        self.imputer_rf_correlation_threshold, self.removal_threshold,
+                                        self.removal_correlation_threshold)
 
         if type(cv) is not int:
             raise ValueError("cv must be an integer")
@@ -181,19 +191,37 @@ class MedAId:
             return pd.read_csv(self.dataset_path, sep=None, engine='python')
         if self.dataset_path.endswith(".xlsx") or self.dataset_path.endswith(".xls"):
             return pd.read_excel(self.dataset_path)
+        else:
+            raise ValueError(f"File format not supported. Please provide a CSV or Excel file.")
 
-    def preprocessing(self, df):
-        return self.preprocess.preprocess(df)
+    def preprocessing(self):
+        return self.preprocess.preprocess(self.df_before)
+
+
+    def split_and_validate_data(self, test_size=0.2, max_attempts=50):
+        all_classes = set(self.y)  
+
+        for attempt in range(max_attempts):
+            X_train, X_test, y_train, y_test = train_test_split(
+                self.X, self.y, test_size=test_size, stratify=self.y, random_state=42 + attempt
+            )
+            
+            train_classes = set(y_train)
+
+            if all_classes.issubset(train_classes):
+                return X_train, X_test, y_train, y_test
+
+        raise ValueError("Could not ensure all classes are present in the training set after maximum attempts.")
 
 
     def train(self):
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        df = self.preprocessing(self.df_before)
+        df = self.preprocessing()
         self.X = df.drop(columns=[self.target_column])
         self.y = df[self.target_column]
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=self.test_size, random_state=42)
+        self.X_train, self.X_test, self.y_train, self.y_test = self.split_and_validate_data(test_size=self.test_size)
 
         best_models, best_models_scores, best_metrics= train(self.X_train, self.y_train,self.X_test, self.y_test,
                                                              self.models, self.metric, self.path, self.search,
@@ -207,7 +235,7 @@ class MedAId:
         sys.stdout = open(os.devnull, 'w')
         sys.stderr = open(os.devnull, 'w')
 
-        makeplots(self) #TODO: odkomentować linijkę jesli juz bedzie dzialac
+        makeplots(self)
 
         sys.stdout.close()
         sys.stderr.close()
