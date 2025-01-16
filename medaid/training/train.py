@@ -18,6 +18,12 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 # TODO: siatki parametrów
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 9198a1d (report fixes)
 def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter, n_jobs, param_grids):
     warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
