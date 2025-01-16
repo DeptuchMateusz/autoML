@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 
 from medaid.preprocessing.preprocessing import Preprocessing
+from medaid.preprocessing.decode import decode
 from sklearn.model_selection import train_test_split
 from medaid.training.train import train
 from medaid.reporting.plots import makeplots
@@ -13,6 +14,7 @@ import pickle
 import sys
 import os
 import numpy as np
+import time
 
 class MedAId:
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
@@ -110,6 +112,11 @@ class MedAId:
         self.n_jobs = n_jobs
 
         if param_grids:
+            if type(param_grids) is not dict:
+                raise ValueError("param_grids must be a dictionary")
+            for model in self.models:
+                if model not in param_grids.keys():
+                    raise ValueError(f"model {model} is not in param_grids")
             self.param_grids = param_grids
         else:
             self.param_grids = {
@@ -230,6 +237,8 @@ class MedAId:
         self.best_models_scores = best_models_scores
         self.best_metrics = best_metrics
 
+        print("\nFinishing up...")
+
         original_stdout = sys.stdout
         original_stderr = sys.stderr
         sys.stdout = open(os.devnull, 'w')
@@ -242,20 +251,32 @@ class MedAId:
         sys.stdout = original_stdout
         sys.stderr = original_stderr
 
-    def predict(self, X):
-        if self.best_models is None:
-            raise ValueError("You need to train the model first")
-        if type(X) is not pd.DataFrame or type(X) is not pd.Series:
+
+
+        message = "\n" +  "="*10 + "  Training complete  " + "="*10 + "\n"
+        for char in message:
+            sys.stdout.write(char)
+            sys.stdout.flush()
+            time.sleep(0.01) 
+
+    def predict(self, X, model_id=0):
+        if model_id is None:
+            if self.best_models is None:
+                raise ValueError("You need to train the model first")
+            model = self.best_models[0]
+        else:
+            model = self.best_models[model_id]
+        if type(X) is not pd.DataFrame:
             raise ValueError("X must be a pandas DataFrame")
         if len(X.columns) != len(self.X.columns):
             raise ValueError("X must have the same columns as the training data")
-        prediction = self.best_models[0].predict(X)
-        #TODO decode
+        prediction = model.predict(X)
 
-        return prediction
+
+        return decode(prediction, self.target_column, self.path)
 
     def models_ranking(self):
-        return self.best_metrics
+        return self.best_metrics.reset_index(drop=True)
 
     def report(self):
         MainReporter(self, self.path).generate_report()
