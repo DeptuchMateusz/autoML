@@ -211,7 +211,7 @@ class PredictExplainer:
 
             analysis += f"""
                         </ul>
-                        <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 50 else 'rare'} amongst other patients.</li>
+                        <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 100 / len(value_counts) else 'rare'} amongst other patients.</li>
                     </ul>
                 </div>
                 <div class="feature-importance">
@@ -235,8 +235,10 @@ class PredictExplainer:
 
         # Start HTML report
         html_report = f"""
-        <html>
+        <!DOCTYPE html>
+            <html lang='en'>
             <head>
+                <meta charset='UTF-8'>
                  <style>
                    body {{
                        font-family: Arial, sans-serif;
@@ -461,7 +463,7 @@ class PredictExplainer:
                        <div class="interpretation">
                            <h4>How to Interpret the Force Plot:</h4>
                            <p>
-                               The force plot shows how each feature in the patient’s data pushes the prediction either towards or away from the predicted class. The length of each arrow indicates the magnitude of the effect of the corresponding feature, while the color shows whether the feature is pushing the prediction in a positive (towards the class) or negative (away from the class) direction. The baseline (middle) represents the average prediction, and the arrows reflect how the features of the individual patient’s data influence that prediction.
+                               The force plot shows how each feature in the patient's data pushes the prediction either towards or away from the predicted class. The length of each arrow indicates the magnitude of the effect of the corresponding feature, while the color shows whether the feature is pushing the prediction in a positive (towards the class) or negative (away from the class) direction. The baseline (middle) represents the average prediction, and the arrows reflect how the features of the individual patient's data influence that prediction.
                            </p>
                        </div>
 
@@ -478,7 +480,7 @@ class PredictExplainer:
                        <div class="interpretation">
                            <h4>How to Interpret the Summary Plot:</h4>
                            <p>
-                               The summary plot shows the overall impact of each feature across the entire dataset. Each point represents a SHAP value for an individual prediction, and the features are sorted by their average impact on the model’s output. The color represents the feature value, with red indicating higher values and blue indicating lower values. The spread of each feature’s points gives an indication of the variation in feature impact across all samples in the dataset.
+                               The summary plot shows the overall impact of each feature across the entire dataset. Each point represents a SHAP value for an individual prediction, and the features are sorted by their average impact on the model's output. The color represents the feature value, with red indicating higher values and blue indicating lower values. The spread of each feature's points gives an indication of the variation in feature impact across all samples in the dataset.
                            </p>
                        </div>
 
@@ -496,7 +498,7 @@ class PredictExplainer:
             <div class="interpretation">
                 <h4>How to Interpret the LIME Explanation:</h4>
                 <p>
-                    The LIME plot provides a local explanation for a specific prediction made by the model. It shows how the individual features of the patient’s data contribute to the model’s prediction. Each feature is assigned a weight that represents its impact on the predicted outcome. Features with higher weights have a more significant influence on the prediction. The plot typically visualizes the contributions of each feature, with the color representing whether the feature is pushing the model's prediction in a positive or negative direction.
+                    The LIME plot provides a local explanation for a specific prediction made by the model. It shows how the individual features of the patient's data contribute to the model's prediction. Each feature is assigned a weight that represents its impact on the predicted outcome. Features with higher weights have a more significant influence on the prediction. The plot typically visualizes the contributions of each feature, with the color representing whether the feature is pushing the model's prediction in a positive or negative direction.
                 </p>
             </div>
                 </div>
@@ -539,6 +541,7 @@ class PredictExplainer:
 
         # Generate SHAP explanations (returns a shap.Explanation object)
         explanation = explainer(processed_input_data)
+        explanation_full = explainer(self.medaid.X)
 
         # Save force plot for a single prediction
         force_plot_path = f"{self.medaid.path}/shap_force_plot.html"
@@ -554,9 +557,9 @@ class PredictExplainer:
         # Create SHAP summary plot for the entire dataset
         summary_plot_path = f"{self.medaid.path}/shap_summary_plot.png"
         shap.summary_plot(
-            explanation.values,  # SHAP values for all samples
-            processed_input_data,  # Input data for all samples
-            feature_names=explanation.feature_names,  # Feature names for labeling
+            explanation_full.values,  # SHAP values for all samples
+            self.medaid.X,  # Input data for all samples
+            feature_names=explanation_full.feature_names,  # Feature names for labeling
             show=False
         )
         plt.savefig(summary_plot_path)

@@ -149,8 +149,14 @@ class MainReporter:
 
             # Preprocessing details section
             f.write("<section><h2>Preprocessing Details</h2><div class='scrollable-table'><table>")
+            first_row = True
             for line in open(f"{self.path}/results/preprocessing_details.csv", 'r'):
-                f.write("<tr>" + "".join(f"<td>{value.strip()}</td>" for value in line.split(",")) + "</tr>")
+                if first_row:
+                    columns = line.split(",")[:-1]  # Exclude the last column in the first row
+                    first_row = False
+                else:
+                    columns = line.split(",")[:-2]  # Exclude the last two columns for the rest
+                f.write("<tr>" + "".join(f"<td>{value.strip()}</td>" for value in columns) + "</tr>")
             f.write("</table></section>")
 
             # Feature distributions
@@ -278,7 +284,7 @@ class MainReporter:
                             <iframe src="../supertree_visualizations/{model.__class__.__name__}_tree.html" 
                                     style="width:100%; height:400px; border:none;"></iframe>
                             """)
-                        f.write("</section>")
+                f.write("</section>")
 
             # Close HTML
             f.write("</body></html>")
