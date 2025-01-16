@@ -17,18 +17,28 @@ from sklearn.exceptions import ConvergenceWarning
 
 
 
+<<<<<<< HEAD
 # TODO: siatki parametrów
 <<<<<<< HEAD
 =======
 
 
 
+<<<<<<< HEAD
 >>>>>>> 9198a1d (report fixes)
+=======
+=======
+>>>>>>> 7b30f35 (param_grids)
+>>>>>>> ee476d6 (param_grids)
 def train(X, y, X_test, y_test, models, metric, path, search, cv, n_iter, n_jobs, param_grids):
     warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
     number_of_classes = len(y.unique()) if len(y.unique()) > 2 else 1
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> ee476d6 (param_grids)
 
 
     best_models = []
