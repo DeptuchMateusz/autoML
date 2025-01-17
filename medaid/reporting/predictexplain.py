@@ -158,8 +158,12 @@ class PredictExplainer:
         # Basic comparison with the classes distribution
         value_counts = target_values.value_counts(normalize=True) * 100
 
+        # Retrieve y_labels dictionary
+        y_labels = self.medaid.y_labels if self.medaid.y_labels else None
+
         # Generate path to SHAP feature importance plot
         shap_plot_path = f"shap_feature_importance/{self.model.__class__.__name__}_custom_feature_importance.png"
+
         # Initialize the analysis variable
         if len(value_counts) == 2:  # Binary classification
             analysis = f"""
@@ -181,12 +185,9 @@ class PredictExplainer:
                         <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 50 else 'rare'} amongst other patients.</li>
                     </ul>
                 </div>
-                <!--
-                <div class="feature-importance">
-                    <h3>Feature Importance on Whole Dataset:</h3>
-                    <img src="{shap_plot_path}" alt="Feature Importance Plot for the whole dataset" style="max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;">
-                </div> -->
-            </div>
+                <div class="target-encoding">
+                    <h3>Target Variable Encoding:</h3>
+                    <ul>
             """
         else:  # Multiclass classification
             analysis = f"""
@@ -214,10 +215,25 @@ class PredictExplainer:
                         <li>The predicted class of {self._format_value(prediction)} is {'common' if value_counts.get(prediction, 0) > 100 / len(value_counts) else 'rare'} amongst other patients.</li>
                     </ul>
                 </div>
-                <div class="feature-importance">
-                    <h3>SHAP Feature Importance:</h3>
-                    <img src="{shap_plot_path}" alt="Feature Importance Plot for the whole dataset" style="max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;">
+                <div class="target-encoding">
+                    <h3>Target Variable Encoding:</h3>
+                    <ul>
+            """
+        #If there is nothing in the y_labels dictionary, the target variable is not encoded, display that
+        if not y_labels:
+            analysis += f"<li>The target variable '{target_column}' is not encoded.</li>"
+        # Add target variable encoding information
+        for encoded_value, label in y_labels.items():
+            analysis += f"<li>Encoded value {encoded_value}: {label}</li>"
+
+        analysis += """
+                    </ul>
                 </div>
+                <!--
+                <div class="feature-importance">
+                    <h3>Feature Importance on Whole Dataset:</h3>
+                    <img src="{shap_plot_path}" alt="Feature Importance Plot for the whole dataset" style="max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;">
+                </div> -->
             </div>
             """
 
@@ -543,22 +559,45 @@ class PredictExplainer:
         explanation = explainer(processed_input_data)
         explanation_full = explainer(self.medaid.X)
 
-        # Save force plot for a single prediction
+        # Ensure features are 2-dimensional
+        features = explanation[0].data
+        if features.ndim == 1:
+            features = np.expand_dims(features, axis=0)
+
+        # Handle multiclass SHAP values
+        if len(explanation[0].values.shape) == 2:
+            # Multiclass case: values are (num_classes, num_features)
+            class_index = 0  # Select the first class, or customize based on the desired class
+            shap_values = explanation[0].values[class_index]
+            base_value = explanation[0].base_values[class_index]
+        else:
+            # Binary classification or regression case
+            shap_values = explanation[0].values
+            base_value = explanation[0].base_values
+
+        # Generate the force plot
         force_plot_path = f"{self.medaid.path}/shap_force_plot.html"
         force_plot = shap.plots.force(
-            explanation[0].base_values,
-            explanation[0].values,
-            explanation[0].data,
+            base_value,
+            shap_values,
+            features[0],  # Single instance, first sample
             feature_names=explanation.feature_names,
             matplotlib=False
         )
         shap.save_html(force_plot_path, force_plot)
 
-        # Create SHAP summary plot for the entire dataset
+        # Handle multiclass SHAP values
+        if len(explanation_full.values.shape) == 3:  # (num_samples, num_classes, num_features)
+            class_index = 0  # Choose a specific class (adjust as needed)
+            shap_values = explanation_full.values[:, class_index, :]  # Extract SHAP values for the chosen class
+        else:
+            shap_values = explanation_full.values  # For binary classification or regression
+
+        # Generate the SHAP summary plot
         summary_plot_path = f"{self.medaid.path}/shap_summary_plot.png"
         shap.summary_plot(
-            explanation_full.values,  # SHAP values for all samples
-            self.medaid.X,  # Input data for all samples
+            shap_values,  # SHAP values for the selected class
+            self.medaid.X,  # Input data (features)
             feature_names=explanation_full.feature_names,  # Feature names for labeling
             show=False
         )
