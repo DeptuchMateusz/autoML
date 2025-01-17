@@ -122,7 +122,11 @@ class MainReporter:
                 <p><strong>Number of rows:</strong> {len(self.aid.X)}</p>
                 <p><strong>Number of columns:</strong> {len(self.aid.X.columns)}</p>
                 <p><strong>Target variable:</strong> {self.aid.y.name}</p>
-                <p><strong>Number of unique classes in target:</strong> {self.aid.y.nunique()}</p>
+                <p><strong>Number of unique classes in target:</strong> {self.aid.y.nunique()}</p>""")
+            if self.aid.y_labels is not None:
+                f.write(f"""
+                <p><strong>Target variable labels:</strong> {', '.join([f"{i}: {label}" for i, label in enumerate(self.aid.y_labels)])}</p>""")
+            f.write("""
             </section>
             """)
 
