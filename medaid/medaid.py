@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 
 from medaid.preprocessing.preprocessing import Preprocessing
+from medaid.preprocessing.decode import decode
 from sklearn.model_selection import train_test_split
 from medaid.training.train import train
 from medaid.reporting.plots import makeplots
@@ -44,6 +45,7 @@ class MedAId:
         removal_correlation_threshold float, optional): Correlation threshold for removing highly correlated columns 
             (excluding target variable). Only one column from each correlated group is kept. Default is 0.9.
         y_labels (dict, optional): Dictionary of labels for target column classes. Defaults to None.
+
 
     Attributes:
         allowed_models (list): List of allowed model names.
