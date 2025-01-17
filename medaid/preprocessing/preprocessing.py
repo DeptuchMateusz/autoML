@@ -8,7 +8,7 @@ from medaid.preprocessing.numeric_format_handler import NumericCommaHandler
 import os
 
 class Preprocessing:
-    def __init__(self, target_column, path, imputer_lr_correlation_threshold=0.8, imputer_rf_correlation_threshold=0.2, removal_threshold=0.2, removal_correlation_threshold=0.9):
+    def __init__(self, target_column, path, imputer_lr_correlation_threshold=0.8, imputer_rf_correlation_threshold=0.2, categorical_threshold=0.2, removal_correlation_threshold=0.9):
         """
         Initialize the preprocessing pipeline.
 
@@ -18,7 +18,7 @@ class Preprocessing:
         """
         self.imputer_lr_correlation_threshold = imputer_lr_correlation_threshold
         self.imputer_rf_correlation_threshold = imputer_rf_correlation_threshold
-        self.removal_threshold = removal_threshold
+        self.categorical_threshold = categorical_threshold
         self.removal_correlation_threshold = removal_correlation_threshold
         self.target_column = target_column
         self.numeric_format_handler = NumericCommaHandler()
