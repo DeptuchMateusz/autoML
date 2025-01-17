@@ -5,7 +5,7 @@ class ColumnRemover:
     A class to detect and remove non-categorical text columns in a pandas DataFrame,
     including columns with 'id' in their name, highly correlated columns, and more.
     """
-    def __init__(self, target_column, threshold=0.2, correlation_threshold=0.9):
+    def __init__(self, target_column, categorical_threshold=0.2, correlation_threshold=0.9):
         """
         Initialize the detector with thresholds.
 
@@ -13,7 +13,7 @@ class ColumnRemover:
         - threshold (float): The percentage difference of unique values to total values above which a column is considered categorical.
         - correlation_threshold (float): Threshold for correlation between columns.
         """
-        self.threshold = threshold
+        self.categorical_threshold = categorical_threshold
         self.correlation_threshold = correlation_threshold
         self.removal_info = {}
         self.target_column = target_column
@@ -101,7 +101,7 @@ class ColumnRemover:
                 unique_values = column.nunique()
                 total_values = len(column)
                 percentage_difference = (unique_values / total_values) * 100
-                if percentage_difference > self.threshold * 100:
+                if percentage_difference > self.categorical_threshold * 100:
                     if column_name == self.target_column:
                         continue
                     text_columns_to_drop.append(column_name)

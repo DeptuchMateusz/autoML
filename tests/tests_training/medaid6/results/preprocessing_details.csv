@@ -1,0 +1,9 @@
+Column Name,Removed,Reason for Removal,Correlation with Target,Imputation Method,Encoded,Encoding Method,Label Encoding Mapping,Scaling Method,Scaling Params
+BMI,True,High correlation,,,,,,,
+Age,False,,,,,,,min_max,"{'min': 11.0, 'max': 112.0}"
+Label,False,,,,True,Label Encoding,"{'Normal Weight': 0, 'Obese': 1, 'Overweight': 2, 'Underweight': 3}",,
+Weight,False,,,,,,,min_max,"{'min': 10.0, 'max': 120.0}"
+Height,False,,,,,,,min_max,"{'min': 120.0, 'max': 210.0}"
+ID,True,"Contains 'id', has unique values equal to rows, and is not float",,,,,,,
+Gender_Male,,,,,,,,min_max,"{'min': 0.0, 'max': 1.0}"
+Gender,False,,,,True,One-Hot Encoding,,,
