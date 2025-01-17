@@ -22,7 +22,7 @@ class Preprocessing:
         self.removal_correlation_threshold = removal_correlation_threshold
         self.target_column = target_column
         self.numeric_format_handler = NumericCommaHandler()
-        self.column_remover = ColumnRemover(self.target_column, self.removal_threshold, self.removal_correlation_threshold)
+        self.column_remover = ColumnRemover(self.target_column, self.categorical_threshold, self.removal_correlation_threshold)
         self.encoder = Encoder(self.target_column)
         self.scaler = Scaler(self.target_column)
         self.imputation = Imputer(self.target_column, self.imputer_lr_correlation_threshold, self.imputer_rf_correlation_threshold)
@@ -92,4 +92,7 @@ class Preprocessing:
 
     def get_target_encoding_info(self):
         encoding_info = self.encoder.get_encoding_info()
-        return encoding_info[self.target_column]["Mapping"]
+        if self.target_column in encoding_info and "Mapping" in encoding_info[self.target_column]:
+            return encoding_info[self.target_column]["Mapping"]
+        return None
+
