@@ -88,5 +88,8 @@ class Preprocessing:
         - scaling_info (dict): Information about scaling.
         """
         
-        # Use PreprocessingCsvExporter to save the details
         self.preprocessing_info.export_to_csv(text_column_removal_info, imputation_info, encoding_info, scaling_info)
+
+    def get_target_encoding_info(self):
+        encoding_info = self.encoder.get_encoding_info()
+        return encoding_info[self.target_column]["Mapping"]

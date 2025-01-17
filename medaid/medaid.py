@@ -4,7 +4,6 @@ import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 
 from medaid.preprocessing.preprocessing import Preprocessing
-from medaid.preprocessing.decode import decode
 from sklearn.model_selection import train_test_split
 from medaid.training.train import train
 from medaid.reporting.plots import makeplots
@@ -39,8 +38,12 @@ class MedAId:
         param_grids (dict, optional): Dictionary of hyperparameter grids for each model. Defaults to predefined grids.
         imputer_lr_correlation_threshold (float, optional): Threshold for logistic regression imputer. Defaults to 0.8.
         imputer_rf_correlation_threshold (float, optional): Threshold for random forest imputer. Defaults to 0.2.
-        removal_threshold (float, optional): Threshold for feature removal. Defaults to 0.2.
-        removal_correlation_threshold (float, optional): Correlation threshold for feature removal. Defaults to 0.9.
+        categorical_threshold (float, optional): Threshold to distinguish text columns from categorical ones.
+            If the ratio of unique values to total values is above this threshold, the column is considered text and removed.
+            Default is 0.2.
+        removal_correlation_threshold float, optional): Correlation threshold for removing highly correlated columns 
+            (excluding target variable). Only one column from each correlated group is kept. Default is 0.9.
+        y_labels (dict, optional): Dictionary of labels for target column classes. Defaults to None.
 
     Attributes:
         allowed_models (list): List of allowed model names.
@@ -57,7 +60,7 @@ class MedAId:
 
     Methods:
         read_data(): Loads the dataset from the specified path.
-        preprocessing(): Applies preprocessing to the dataset.
+        preprocess(): Applies preprocessing to the dataset.
         split_and_validate_data(test_size, max_attempts): Splits the data, ensuring all classes are present in training.
         train():
             - Performs preprocessing of the dataset.
@@ -89,8 +92,9 @@ class MedAId:
                  , param_grids = None
                  , imputer_lr_correlation_threshold=0.8
                  , imputer_rf_correlation_threshold=0.2
-                 , removal_threshold=0.2
+                 , categorical_threshold=0.2
                  , removal_correlation_threshold=0.9
+                 , y_labels = None
                  ):
 
         self.dataset_path = dataset_path
@@ -142,11 +146,12 @@ class MedAId:
 
         self.imputer_lr_correlation_threshold = imputer_lr_correlation_threshold
         self.imputer_rf_correlation_threshold = imputer_rf_correlation_threshold
-        self.removal_threshold = removal_threshold
+        self.categorical_threshold = categorical_threshold
         self.removal_correlation_threshold = removal_correlation_threshold        
-        self.preprocess = Preprocessing(self.target_column, self.path, self.imputer_lr_correlation_threshold,
-                                        self.imputer_rf_correlation_threshold, self.removal_threshold,
+        self.preprocessing = Preprocessing(self.target_column, self.path, self.imputer_lr_correlation_threshold,
+                                        self.imputer_rf_correlation_threshold, self.categorical_threshold,
                                         self.removal_correlation_threshold)
+        self.y_labels = y_labels
 
         if type(cv) is not int:
             raise ValueError("cv must be an integer")
@@ -257,8 +262,10 @@ class MedAId:
         else:
             raise ValueError(f"File format not supported. Please provide a CSV or Excel file.")
 
-    def preprocessing(self):
-        return self.preprocess.preprocess(self.df_before)
+    def preprocess(self):
+        preprocessed_df = self.preprocessing.preprocess(self.df_before)
+        self.y_labels = self.preprocessing.get_target_encoding_info()
+        return  preprocessed_df
 
 
     def split_and_validate_data(self, test_size=0.2, max_attempts=50):
@@ -281,7 +288,7 @@ class MedAId:
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        df = self.preprocessing()
+        df = self.preprocess()
         self.X = df.drop(columns=[self.target_column])
         self.y = df[self.target_column]
         self.X_train, self.X_test, self.y_train, self.y_test = self.split_and_validate_data(test_size=self.test_size)
