@@ -12,4 +12,4 @@ cd medaid
 pip install .
 ```
 ## More Info
-For more detailed information about the package navigate to `notebook.py` file.
+For more detailed information about the package navigate to `notebook.ipynb` file.
