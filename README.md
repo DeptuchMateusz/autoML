@@ -12,9 +12,13 @@ Since this package is not available on PyPI (for now), you can install it direct
 
 ```bash
 <<<<<<< HEAD
+<<<<<<< HEAD
 git clone https://github.com/DeptuchMateusz/autoML.git
 cd medaid
 pip install .
+=======
+pip install medaid
+>>>>>>> 759a50d (update notebook)
 ```
 ## More Info
 For more detailed information about the package navigate to `notebook.ipynb` (polish version) or `notebook_eng.ipynb` (english version) file.
