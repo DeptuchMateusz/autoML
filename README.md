@@ -1,4 +1,4 @@
-# MedAId 
+# MedAId :stethoscope:
 
 This is a Python package designed for working with tabular data. While it is optimized for medical data use cases, it can be adapted to work with any kind of tabular dataset.
 
@@ -12,4 +12,4 @@ cd medaid
 pip install .
 ```
 ## More Info
-For more detailed information about the package navigate to notebook.py file.
+For more detailed information about the package navigate to `notebook.py` file.
