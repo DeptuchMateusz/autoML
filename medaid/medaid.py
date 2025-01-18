@@ -4,7 +4,6 @@ import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 
 from medaid.preprocessing.preprocessing import Preprocessing
-from medaid.preprocessing.decode import decode
 from sklearn.model_selection import train_test_split
 from medaid.training.train import train
 from medaid.reporting.plots import makeplots
@@ -336,9 +335,11 @@ class MedAId:
         if len(X.columns) != len(self.X.columns):
             raise ValueError("X must have the same columns as the training data")
         prediction = model.predict(X)
+        if self.y_labels:
+            labels = {v: k for k, v in self.y_labels.items()}
+            prediction = [labels[p] for p in prediction]
 
-
-        return decode(prediction, self.target_column, self.path)
+        return prediction
 
     def models_ranking(self):
         return self.best_metrics.reset_index(drop=True)
