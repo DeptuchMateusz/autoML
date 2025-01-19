@@ -151,17 +151,19 @@ class MainReporter:
                 f.write("</tr>")
             f.write("</table></section>")
 
-            # Preprocessing details section
-            f.write("<section><h2>Preprocessing Details</h2><div class='scrollable-table'><table>")
-            first_row = True
-            for line in open(f"{self.path}/results/preprocessing_details.csv", 'r'):
-                if first_row:
-                    columns = line.split(",")[:-1]  # Exclude the last column in the first row
-                    first_row = False
-                else:
-                    columns = line.split(",")[:-2]  # Exclude the last two columns for the rest
-                f.write("<tr>" + "".join(f"<td>{value.strip()}</td>" for value in columns) + "</tr>")
-            f.write("</table></section>")
+            import csv
+
+            with open(f"{self.path}/results/preprocessing_details.csv", 'r') as csvfile:
+                reader = csv.reader(csvfile)
+                first_row = True
+                f.write("<section><h2>Preprocessing Details</h2><div class='scrollable-table'><table>")
+                for row in reader:
+                    if first_row:
+                        f.write("<tr>" + "".join(f"<th>{value.strip()}</th>" for value in row[:-1]) + "</tr>")
+                        first_row = False
+                    else:
+                        f.write("<tr>" + "".join(f"<td>{value.strip()}</td>" for value in row[:-1]) + "</tr>")
+                f.write("</table></section>")
 
             # Feature distributions
             f.write("<section><h2>Feature Distributions</h2><div>")
