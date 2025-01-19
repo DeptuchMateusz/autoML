@@ -432,7 +432,7 @@ class PredictExplainer:
         for a single prediction and a summary plot for the whole dataset. Both are saved as files.
         """
         # Preprocess input data
-        processed_input_data = preprocess_input_data(self.medaid, input_data)
+        processed_input_data =  input_data
 
         # Determine the SHAP explainer based on the model type
         if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
@@ -443,6 +443,8 @@ class PredictExplainer:
         # Generate SHAP explanations (returns a shap.Explanation object)
         explanation = explainer(processed_input_data)
         explanation_full = explainer(self.medaid.X)
+
+        print(explanation)
 
         # Ensure features are 2-dimensional
         features = explanation[0].data
@@ -461,6 +463,7 @@ class PredictExplainer:
             base_value = explanation[0].base_values
 
         # Generate the force plot
+
         force_plot_path = f"{self.medaid.path}/shap_force_plot.html"
         force_plot = shap.plots.force(
             base_value,
@@ -522,7 +525,9 @@ class PredictExplainer:
         Adds SHAP or LIME visualizations for enhanced interpretability.
         """
         # Preprocess the input data
+        print("input data",input_data)
         processed_input_data = preprocess_input_data(self.medaid, input_data)
+        print("processed input data",processed_input_data)
 
         # Make and analyze the prediction
         prediction = self.model.predict(processed_input_data)[0]
