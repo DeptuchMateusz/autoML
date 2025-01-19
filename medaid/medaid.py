@@ -1,11 +1,6 @@
 import warnings
-
 import pandas as pd
-from keras.src.applications.inception_resnet_v2 import preprocess_input
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
-
 from medaid.preprocessing.preprocessing import Preprocessing, preprocess_input_data
 from sklearn.model_selection import train_test_split
 from medaid.training.train import train
@@ -81,7 +76,7 @@ class MedAId:
     """
 
     allowed_models = ["logistic", "tree", "random_forest", "xgboost", "lightgbm"]
-    allowed_metrics = [ "accuracy", "f1", "recall", "precision"] #TODO ktore metryki ?
+    allowed_metrics = [ "accuracy", "f1", "recall", "precision"] 
     def __init__(self
                  , dataset_path
                  , target_column

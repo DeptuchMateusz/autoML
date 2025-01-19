@@ -1,7 +1,7 @@
 setuptools>=40.8.0
 pandas>=1.5.0
 numpy>=1.21.0
-scikit-learn>=1.2.0
+scikit-learn==1.5.2
 matplotlib>=3.5.0
 fancyimpute>=0.6.0
 reportlab>=3.6.0

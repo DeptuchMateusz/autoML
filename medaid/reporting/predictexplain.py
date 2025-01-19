@@ -1,13 +1,11 @@
 from lime.lime_tabular import LimeTabularExplainer
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
-import pickle
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
-from sklearn.impute import SimpleImputer
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 import shap
 import matplotlib.pyplot as plt
+from medaid.preprocessing.preprocessing import preprocess_input_data
 
 
 class PredictExplainer:
@@ -22,119 +20,6 @@ class PredictExplainer:
         self.medaid = medaid
         self.model = model
         self.preprocessing_details = pd.read_csv(self.medaid.path + '/results/preprocessing_details.csv')
-        # Create dictionaries for encoders, scalers, and imputers
-        self.encoders = {}
-        self.scalers = {}
-        self.imputers = {}
-
-    def preprocess_input_data(self, input_data):
-        """
-        Preprocesses the input data using the stored preprocessing details.
-        This version uses pandas get_dummies for one-hot encoding.
-        """
-        processed_data = input_data.copy()
-
-        # Handle one-hot encoding using pandas get_dummies
-        for _, row in self.preprocessing_details.iterrows():
-            column_name = row["Column Name"]
-
-            if column_name not in processed_data.columns:
-                continue  # Skip columns not in the input data
-
-            # Encoding handling: Apply encoding methods first
-            if row["Encoded"] and not row["Removed"]:
-                encoding_method = row["Encoding Method"]
-                if encoding_method == "One-Hot Encoding":
-                    # One-Hot encoding using pandas get_dummies
-                    processed_data_encoded = pd.get_dummies(processed_data, columns=[column_name], drop_first=False)
-                    # Ensure that columns in the input data match with the training data
-                    processed_data_encoded = processed_data_encoded.reindex(columns=self.medaid.X.columns, fill_value=0)
-                    processed_data = processed_data_encoded
-
-                elif encoding_method == "Label Encoding":
-                    if column_name not in self.encoders:
-                        label_encoder = LabelEncoder()
-                        if column_name in self.medaid.X.columns:
-                            label_encoder.fit(self.medaid.X[column_name])
-                        else:
-                            label_encoder.fit(processed_data[column_name])
-                        self.encoders[column_name] = label_encoder
-
-                    # Transform the input data
-                    processed_data[column_name] = self.encoders[column_name].transform(processed_data[column_name])
-
-        # Now, handle imputation after encoding
-        for _, row in self.preprocessing_details.iterrows():
-            column_name = row["Column Name"]
-
-            if column_name not in processed_data.columns:
-                continue  # Skip columns not in the input data
-
-            # Imputation handling
-            if row["Imputation Method"] and not row["Removed"]:
-                imputation_method = row["Imputation Method"]
-                strategy = imputation_method.lower() if pd.notna(imputation_method) else "mean"
-
-                if column_name not in self.imputers:
-                    if processed_data[column_name].dtype in [np.float64, np.int64]:  # Numeric data
-                        if strategy in ["mean", "median", "most_frequent"]:
-                            imputer = SimpleImputer(strategy=strategy)
-                        else:
-                            raise ValueError(f"Unsupported imputation strategy for numeric data: {strategy}")
-                    else:  # Categorical data
-                        if strategy == "mean":
-                            strategy = "most_frequent"  # Automatically change "mean" to "most_frequent" for categorical data
-                        if strategy == "most_frequent":
-                            imputer = SimpleImputer(strategy="most_frequent")
-                        else:
-                            raise ValueError(f"Unsupported imputation strategy for categorical data: {strategy}")
-
-                    # Fit the imputer
-                    if column_name in self.medaid.X.columns:
-                        imputer.fit(self.medaid.X[[column_name]])
-                    else:
-                        imputer.fit(processed_data[[column_name]])
-
-                    # Save the fitted imputer
-                    self.imputers[column_name] = imputer
-
-                # Transform the input data
-                processed_data[column_name] = self.imputers[column_name].transform(
-                    processed_data[column_name].values.reshape(-1, 1)
-                ).flatten()
-
-        # Scaling handling: Scale after encoding and imputation
-        for _, row in self.preprocessing_details.iterrows():
-            column_name = row["Column Name"]
-
-            if column_name not in processed_data.columns:
-                continue  # Skip columns not in the input data
-
-            # Scaling handling
-            if row["Scaling Method"] and not row["Removed"]:
-                scaling_method = row["Scaling Method"].lower()
-
-                if column_name not in self.scalers:
-                    if scaling_method in ["standard scaling", "standardization"]:
-                        scaler = StandardScaler()
-                    elif scaling_method in ["min-max scaling", "normalization", "min_max"]:
-                        scaler = MinMaxScaler()
-                    else:
-                        raise ValueError(f"Unsupported scaling method: {scaling_method}")
-
-                    if column_name in self.medaid.X.columns:
-                        scaler.fit(self.medaid.X[[column_name]])
-                    else:
-                        scaler.fit(processed_data[[column_name]])
-
-                    self.scalers[column_name] = scaler
-
-                # Transform the input data
-                processed_data[column_name] = self.scalers[column_name].transform(
-                    processed_data[column_name].values.reshape(-1, 1)
-                ).flatten()
-
-        return processed_data
 
     def _format_value(self, value):
         """
@@ -531,7 +416,7 @@ class PredictExplainer:
         """
         Generates visualizations for the given input data using SHAP or LIME.
         """
-        input_data = self.preprocess_input_data(input_data)
+        input_data = preprocess_input_data(self.medaid, input_data)
         if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
             # Use LIME for tree-based models
             return self.generate_lime_viz(input_data)
@@ -547,7 +432,7 @@ class PredictExplainer:
         for a single prediction and a summary plot for the whole dataset. Both are saved as files.
         """
         # Preprocess input data
-        processed_input_data = self.preprocess_input_data(input_data)
+        processed_input_data = preprocess_input_data(self.medaid, input_data)
 
         # Determine the SHAP explainer based on the model type
         if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
@@ -637,7 +522,7 @@ class PredictExplainer:
         Adds SHAP or LIME visualizations for enhanced interpretability.
         """
         # Preprocess the input data
-        processed_input_data = self.preprocess_input_data(input_data)
+        processed_input_data = preprocess_input_data(self.medaid, input_data)
 
         # Make and analyze the prediction
         prediction = self.model.predict(processed_input_data)[0]
