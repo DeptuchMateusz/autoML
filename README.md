@@ -4,7 +4,7 @@ This is a Python package designed for working with tabular data. While it is opt
 
 ## Installation
 
-Since this package is not available on PyPI (for now), you can install it directly from the source. Clone the repository and install the package using the following commands:
+This package is available on PyPI. Clone the repository and install the package using the following commands:
 
 ```bash
 pip install medaid
