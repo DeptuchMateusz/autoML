@@ -107,9 +107,10 @@ class PredictExplainer:
         #If there is nothing in the y_labels dictionary, the target variable is not encoded, display that
         if not y_labels:
             analysis += f"<li>The target variable '{target_column}' is not encoded.</li>"
-        # Add target variable encoding information
-        for encoded_value, label in y_labels.items():
-            analysis += f"<li>Encoded value {encoded_value}: {label}</li>"
+        else:
+            # Add target variable encoding information
+            for encoded_value, label in y_labels.items():
+                analysis += f"<li>Encoded value {encoded_value}: {label}</li>"
 
         analysis += """
                     </ul>
@@ -417,12 +418,28 @@ class PredictExplainer:
         Generates visualizations for the given input data using SHAP or LIME.
         """
         input_data = preprocess_input_data(self.medaid, input_data)
-        if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
+        #if multiclass use lime
+        if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)) or len(self.model.classes_) > 2:
             # Use LIME for tree-based models
             return self.generate_lime_viz(input_data)
         else:
             # Use SHAP for other models
             return self.generate_shap_viz(input_data)
+
+    import numpy as np
+    import shap
+    import matplotlib.pyplot as plt
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.ensemble import RandomForestClassifier
+
+    import numpy as np
+    import shap
+    import matplotlib.pyplot as plt
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.ensemble import RandomForestClassifier
+
+    import matplotlib.pyplot as plt
+    import shap
 
     def generate_shap_viz(self, input_data):
         """
@@ -432,63 +449,85 @@ class PredictExplainer:
         for a single prediction and a summary plot for the whole dataset. Both are saved as files.
         """
         # Preprocess input data
-        processed_input_data =  input_data
+        processed_input_data = input_data
 
         # Determine the SHAP explainer based on the model type
         if isinstance(self.model, (DecisionTreeClassifier, RandomForestClassifier)):
-            explainer = shap.TreeExplainer(self.model)
+            explainer = shap.TreeExplainer(self.model, self.medaid.X_train)
         else:
-            explainer = shap.Explainer(self.model, self.medaid.X)
+            explainer = shap.Explainer(self.model, self.medaid.X_train)
 
-        # Generate SHAP explanations (returns a shap.Explanation object)
+        # Generate SHAP explanations
         explanation = explainer(processed_input_data)
-        explanation_full = explainer(self.medaid.X)
+        explanation_full = explainer(self.medaid.X_train)
 
-        print(explanation)
 
         # Ensure features are 2-dimensional
-        features = explanation[0].data
+        features = explanation.data
         if features.ndim == 1:
             features = np.expand_dims(features, axis=0)
 
         # Handle multiclass SHAP values
         if len(explanation[0].values.shape) == 2:
-            # Multiclass case: values are (num_classes, num_features)
-            class_index = 0  # Select the first class, or customize based on the desired class
+            class_index = 0  # Select the first class
             shap_values = explanation[0].values[class_index]
             base_value = explanation[0].base_values[class_index]
         else:
-            # Binary classification or regression case
             shap_values = explanation[0].values
             base_value = explanation[0].base_values
 
-        # Generate the force plot
+        # Ensure feature names are correctly assigned
+        feature_names = self.medaid.feature_names if hasattr(self.medaid, 'feature_names') else None
 
+        # Fix potential mismatches between features and SHAP values
+        if len(features[0]) > len(shap_values):
+            features = features[:, :len(shap_values)]
+        elif len(features[0]) < len(shap_values):
+            shap_values = shap_values[:len(features[0])]
+
+        # Generate the force plot
         force_plot_path = f"{self.medaid.path}/shap_force_plot.html"
+
+        # Clear the previous plot (to avoid overlapping color scales/legends)
+        plt.clf()
+
         force_plot = shap.plots.force(
-            base_value,
-            shap_values,
-            features[0],  # Single instance, first sample
-            feature_names=explanation.feature_names,
+            base_value=base_value,
+            shap_values=shap_values,
+            features=features[0],  # Ensure correct feature length
+            feature_names=feature_names,
             matplotlib=False
         )
+
         shap.save_html(force_plot_path, force_plot)
 
-        # Handle multiclass SHAP values
+        # Handle multiclass SHAP values for the entire dataset
         if len(explanation_full.values.shape) == 3:  # (num_samples, num_classes, num_features)
-            class_index = 0  # Choose a specific class (adjust as needed)
-            shap_values = explanation_full.values[:, class_index, :]  # Extract SHAP values for the chosen class
+            class_index = 0
+            shap_values_full = explanation_full.values[:, class_index, :]
         else:
-            shap_values = explanation_full.values  # For binary classification or regression
+            shap_values_full = explanation_full.values
+
+        # Fix SHAP values shape mismatch
+        if shap_values_full.shape[1] > self.medaid.X_train.shape[1]:
+            shap_values_full = shap_values_full[:, :self.medaid.X_train.shape[1]]
+        elif shap_values_full.shape[1] < self.medaid.X_train.shape[1]:
+            self.medaid.X_train = self.medaid.X_train.iloc[:, :shap_values_full.shape[1]]
 
         # Generate the SHAP summary plot
         summary_plot_path = f"{self.medaid.path}/shap_summary_plot.png"
+
+        # Clear the previous plot (to avoid overlapping color scales/legends)
+        plt.clf()
+
         shap.summary_plot(
-            shap_values,  # SHAP values for the selected class
-            self.medaid.X,  # Input data (features)
-            feature_names=explanation_full.feature_names,  # Feature names for labeling
+            shap_values_full,  # SHAP values for the selected class
+            self.medaid.X_train,  # Input data (features)
+            feature_names=feature_names,  # Feature names for labeling
             show=False
         )
+
+        # Save the summary plot
         plt.savefig(summary_plot_path)
 
         # Return paths to the saved plots
@@ -525,9 +564,7 @@ class PredictExplainer:
         Adds SHAP or LIME visualizations for enhanced interpretability.
         """
         # Preprocess the input data
-        print("input data",input_data)
         processed_input_data = preprocess_input_data(self.medaid, input_data)
-        print("processed input data",processed_input_data)
 
         # Make and analyze the prediction
         prediction = self.model.predict(processed_input_data)[0]
