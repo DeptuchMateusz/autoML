@@ -1,9 +1,12 @@
 import warnings
 
 import pandas as pd
+from keras.src.applications.inception_resnet_v2 import preprocess_input
 from sklearn.exceptions import ConvergenceWarning
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 
-from medaid.preprocessing.preprocessing import Preprocessing
+from medaid.preprocessing.preprocessing import Preprocessing, preprocess_input_data
 from sklearn.model_selection import train_test_split
 from medaid.training.train import train
 from medaid.reporting.plots import makeplots
@@ -173,6 +176,15 @@ class MedAId:
         self.y_test = None
         self.n_jobs = n_jobs
 
+        self.encoders = {}
+        self.scalers = {}
+        self.imputers = {}
+
+        self.removal_info = None
+        self.imputation_info = None
+        self.encoding_info = None
+        self.scaling_info = None
+
         if param_grids:
             if type(param_grids) is not dict:
                 raise ValueError("param_grids must be a dictionary")
@@ -266,6 +278,7 @@ class MedAId:
     def preprocess(self):
         preprocessed_df = self.preprocessing.preprocess(self.df_before)
         self.y_labels = self.preprocessing.get_target_encoding_info()
+        self.removal_info, self.imputation_info, self.encoding_info, self.scaling_info = self.preprocessing.get_preprocessing_info()
         return  preprocessed_df
 
 
@@ -321,19 +334,22 @@ class MedAId:
         for char in message:
             sys.stdout.write(char)
             sys.stdout.flush()
-            time.sleep(0.01) 
+            time.sleep(0.01)
+
+
 
     def predict(self, X, model_id=0):
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        if type(X) is not pd.DataFrame:
+            raise ValueError("X must be a pandas DataFrame")
+        X = preprocess_input_data(self, X)
         if model_id is None:
             if self.best_models is None:
                 raise ValueError("You need to train the model first")
             model = self.best_models[0]
         else:
             model = self.best_models[model_id]
-        if type(X) is not pd.DataFrame:
-            raise ValueError("X must be a pandas DataFrame")
-        if len(X.columns) != len(self.X.columns):
-            raise ValueError("X must have the same columns as the training data")
+
         prediction = model.predict(X)
         if self.y_labels:
             labels = {v: k for k, v in self.y_labels.items()}
@@ -362,3 +378,4 @@ class MedAId:
         html_report = pe.generate_html_report(df, input_data)
         with open(f"{self.path}/prediction_report.html", 'w') as f:
             f.write(html_report)
+
