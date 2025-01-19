@@ -10,7 +10,7 @@ with open("requirements.txt", 'r', encoding='utf-8') as f:
 
 setup(
     name="medaid",
-    version="0.1.6",
+    version="0.1.7",
     description="Automated Machine Learning for medical use",
     long_description=long_description,
     long_description_content_type="text/markdown",
