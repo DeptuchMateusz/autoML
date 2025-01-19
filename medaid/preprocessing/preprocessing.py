@@ -112,6 +112,7 @@ def preprocess_input_data(aid, input_data):
         #removal
         columns_to_keep = [col for col, info in aid.removal_info.items() if not info.get('Removed', False)]
         columns_to_keep = [col for col in columns_to_keep if col != aid.target_column]
+        print(columns_to_keep)
         preprocessed_data = processed_data[columns_to_keep]
 
 
@@ -166,7 +167,8 @@ def preprocess_input_data(aid, input_data):
 
                 preprocessed_data.loc[:, feature] = (preprocessed_data[feature] - mean) / std
 
-
+        #convert to numeric
+        preprocessed_data = preprocessed_data.apply(pd.to_numeric, errors='ignore')
 
 
 
