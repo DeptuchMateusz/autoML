@@ -96,3 +96,78 @@ class Preprocessing:
             return encoding_info[self.target_column]["Mapping"]
         return None
 
+    def get_preprocessing_info(self):
+        return (self.column_remover.get_removal_info(),
+                self.imputation.get_imputation_info(),
+                self.encoder.get_encoding_info(),
+                self.scaler.get_scaling_info())
+
+def preprocess_input_data(aid, input_data):
+        """
+        Preprocesses the input data using the stored preprocessing details.
+        This version uses pandas get_dummies for one-hot encoding.
+        """
+        processed_data = input_data.copy()
+
+        #removal
+        columns_to_keep = [col for col, info in aid.removal_info.items() if not info.get('Removed', False)]
+        columns_to_keep = [col for col in columns_to_keep if col != aid.target_column]
+        preprocessed_data = processed_data[columns_to_keep]
+
+
+        #imputation
+        for feature, imputation_params in aid.imputation_info.items():
+            #impute mean
+            preprocessed_data[feature] = preprocessed_data[feature].fillna(preprocessed_data[feature].mean())
+
+        #encoding
+        for feature, encoding_params in aid.encoding_info.items():
+            if feature == aid.target_column:
+                continue
+            if encoding_params['Encoding Method'] == 'Label Encoding':
+                mapping = encoding_params['Mapping']
+                # Apply the mapping to the feature column
+                preprocessed_data[feature] = preprocessed_data[feature].map(mapping)
+            elif encoding_params['Encoding Method'] == 'One-Hot Encoding':
+                # do this encoding based on aid.X_labels
+                encoded_df = pd.get_dummies(preprocessed_data[feature], prefix=feature, drop_first=True)
+                preprocessed_data = pd.concat([preprocessed_data, encoded_df], axis=1).drop(columns=[feature])
+
+        for feature, encoding_params in aid.encoding_info.items():
+            if encoding_params['Encoding Method'] == 'One-Hot Encoding':
+                # Get the expected columns for the feature from the training data
+                expected_columns = [col for col in aid.X.columns if col.startswith(f"{feature}_")]
+                missing_columns = set(expected_columns) - set(preprocessed_data.columns)
+
+                # Add missing columns with 0 values
+                for col in missing_columns:
+                    preprocessed_data[col] = 0
+
+            # scaling
+        for feature, scaling_params in aid.scaling_info.items():
+            if feature == aid.target_column:
+                continue
+            scaling_method = scaling_params['scaling_method']
+
+
+            if scaling_method == 'min_max':
+                min_val = scaling_params['params']['min']
+                max_val = scaling_params['params']['max']
+                preprocessed_data.loc[:, feature] = preprocessed_data[feature].astype(float)
+                preprocessed_data.loc[:, feature] = (preprocessed_data[feature] - min_val) / (max_val - min_val)
+
+
+            elif scaling_method == 'standardization':
+                # Standard scaling using the precomputed mean and std
+
+                mean = scaling_params['params']['mean']
+
+                std = scaling_params['params']['std']
+
+                preprocessed_data.loc[:, feature] = (preprocessed_data[feature] - mean) / std
+
+
+
+
+
+        return preprocessed_data
