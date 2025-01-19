@@ -44,8 +44,8 @@ class MedAId:
         categorical_threshold (float, optional): Threshold to distinguish text columns from categorical ones.
             If the ratio of unique values to total values is above this threshold, the column is considered text and removed.
             Default is 0.2.
-        removal_correlation_threshold float, optional): Correlation threshold for removing highly correlated columns 
-            (excluding target variable). Only one column from each correlated group is kept. Default is 0.9.
+        removal_correlation_threshold float, optional): Correlation threshold for removing correlated columns 
+            (excluding target variable). Only one column from each correlated group is kept. Default is 1.
         y_labels (dict, optional): Dictionary of labels for target column classes. Defaults to None.
 
 

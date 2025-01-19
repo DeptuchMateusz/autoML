@@ -5,7 +5,7 @@ class ColumnRemover:
     A class to detect and remove non-categorical text columns in a pandas DataFrame,
     including columns with 'id' in their name, highly correlated columns, and more.
     """
-    def __init__(self, target_column, categorical_threshold=0.2, correlation_threshold=0.9):
+    def __init__(self, target_column, categorical_threshold=0.2, correlation_threshold=1):
         """
         Initialize the detector with thresholds.
 
@@ -52,9 +52,9 @@ class ColumnRemover:
         
         return dataframe
 
-    def remove_highly_correlated_columns(self, dataframe):
+    def remove_correlated_columns(self, dataframe):
         """
-        Identify highly correlated numeric columns and remove one from each pair.
+        Identify correlated numeric columns and remove one from each pair.
 
         Parameters:
         - dataframe (pd.DataFrame): The DataFrame to process.
@@ -130,7 +130,7 @@ class ColumnRemover:
         dataframe = self.remove_id_columns(dataframe)
 
         # Step 2: Remove highly correlated columns
-        dataframe = self.remove_highly_correlated_columns(dataframe)
+        dataframe = self.remove_correlated_columns(dataframe)
 
         # Step 3: Remove non-categorical text columns
         dataframe = self.remove_non_categorical_text_columns(dataframe)
